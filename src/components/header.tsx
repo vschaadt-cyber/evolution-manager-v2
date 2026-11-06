@@ -30,8 +30,8 @@ function Header({ instanceId }: { instanceId?: string }) {
 
   return (
     <header className="flex items-center justify-between px-4 py-2">
-      <Link to="/manager" onClick={navigateToDashboard} className="flex h-8 items-center gap-4">
-        <img src={theme === "dark" ? "https://evolution-api.com/files/evo/evolution-logo-white.svg" : "https://evolution-api.com/files/evo/evolution-logo.svg"} alt="Logo" className="h-full" />
+      <Link to="/manager" onClick={navigateToDashboard} className="flex h-10 items-center gap-4">
+        <img src={theme === "dark" ? "/assets/images/gestao-logo-dark.png" : "/assets/images/gestao-logo.png"} alt="Gestão" className="h-full" />
       </Link>
       <div className="flex items-center gap-4">
         {instanceId && (
