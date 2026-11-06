@@ -9,7 +9,7 @@ export function InstanceStatus({ status }: { status: string }) {
     return null;
   }
 
-  if (status === "open") return <Badge>{t("status.open")}</Badge>;
+  if (status === "open") return <Badge variant="success">{t("status.open")}</Badge>;
 
   if (status === "connecting") return <Badge variant="warning">{t("status.connecting")}</Badge>;
 

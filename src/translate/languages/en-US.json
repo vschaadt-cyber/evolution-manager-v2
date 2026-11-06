@@ -1,10 +1,31 @@
 {
   "dashboard": {
-    "title": "Instances",
+    "title": "Dashboard",
     "search": "Search",
     "status": "Status",
     "settings": "Settings",
-    "instancesNotFound": "No instances found"
+    "instancesNotFound": "No instances found",
+    "subtitle": "See your instances and key numbers",
+    "open": "Open instance",
+    "backup": "Chat backup",
+    "refresh": "Refresh",
+    "viewList": "List view",
+    "viewGrid": "Card view",
+    "stats": {
+      "total": "Total instances",
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "messages": "Messages",
+      "contacts": "Contacts"
+    },
+    "table": {
+      "name": "Name",
+      "status": "Status",
+      "number": "Number",
+      "messages": "Messages",
+      "contacts": "Contacts",
+      "token": "Token"
+    }
   },
   "button": {
     "delete": "Delete",
@@ -43,6 +64,10 @@
       "portuguese": "Portuguese",
       "spanish": "Spanish",
       "french": "French"
+    },
+    "logout": {
+      "title": "Log out",
+      "message": "Do you really want to log out?"
     }
   },
   "chat": {
@@ -1435,5 +1460,61 @@
         "title": "Default Settings"
       }
     }
+  },
+  "nav": {
+    "main": "Main menu",
+    "help": "Help",
+    "dashboard": "Dashboard",
+    "backup": "Chat backup",
+    "docs": "Documentation",
+    "postman": "Postman Collection",
+    "collapse": "Collapse menu",
+    "expand": "Expand menu"
+  },
+  "backup": {
+    "title": "Chat backup",
+    "subtitle": "Download your messages to a file",
+    "step": {
+      "instance": "Choose the instance",
+      "scope": "What to download",
+      "format": "File format"
+    },
+    "selectInstance": "Select an instance",
+    "selectInstanceFirst": "Select an instance first.",
+    "instanceSummary": "{{messages}} messages and {{contacts}} contacts in this instance.",
+    "scope": {
+      "all": {
+        "title": "All conversations",
+        "description": "Every message of the instance in a single file."
+      },
+      "selected": {
+        "title": "Pick conversations",
+        "description": "Download only the chats and groups you tick."
+      }
+    },
+    "searchChat": "Search by name or number",
+    "loadingChats": "Loading chats...",
+    "noChats": "No chats found.",
+    "group": "Group",
+    "selectedCount": "{{count}} chat(s) selected",
+    "format": {
+      "jsonl": {
+        "title": "JSON Lines (.jsonl)",
+        "description": "Complete: keeps everything about each message. Best for importing into a database."
+      },
+      "csv": {
+        "title": "Spreadsheet (.csv)",
+        "description": "Essentials only (date, sender, text). Opens in Excel and Google Sheets."
+      }
+    },
+    "start": "Create backup",
+    "running": "Working...",
+    "messages": "messages",
+    "cancelled": "Backup cancelled",
+    "success": "Backup ready: {{count}} messages",
+    "error": "Could not create the backup",
+    "done": "{{amount}} messages saved to {{fileName}}",
+    "noteTitle": "About this backup",
+    "note": "The file is built in your browser from the messages stored in Evolution API. Media (photos, audio, documents) is not included. To keep everything automatically, use the Evolution webhook."
   }
 }

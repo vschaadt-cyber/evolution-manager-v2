@@ -36,7 +36,7 @@ function Header({ instanceId }: { instanceId?: string }) {
       <div className="flex items-center gap-4">
         {instanceId && (
           <Avatar className="h-8 w-8">
-            <AvatarImage src={instance?.profilePicUrl || "/assets/images/evolution-logo.png"} alt={instance?.name} />
+            <AvatarImage src={instance?.profilePicUrl || "/assets/images/gestao-favicon.png"} alt={instance?.name} />
           </Avatar>
         )}
         <LanguageToggle />

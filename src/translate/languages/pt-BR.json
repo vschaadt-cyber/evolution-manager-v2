@@ -1,10 +1,31 @@
 {
   "dashboard": {
-    "title": "Instâncias",
+    "title": "Dashboard",
     "search": "Pesquisar",
     "status": "Status",
     "settings": "Configurações",
-    "instancesNotFound": "Nenhuma instância encontrada"
+    "instancesNotFound": "Nenhuma instância encontrada",
+    "subtitle": "Veja suas instâncias e indicadores",
+    "open": "Abrir instância",
+    "backup": "Backup das conversas",
+    "refresh": "Atualizar",
+    "viewList": "Ver em lista",
+    "viewGrid": "Ver em cards",
+    "stats": {
+      "total": "Total de instâncias",
+      "connected": "Conectadas",
+      "disconnected": "Desconectadas",
+      "messages": "Mensagens",
+      "contacts": "Contatos"
+    },
+    "table": {
+      "name": "Nome",
+      "status": "Status",
+      "number": "Número",
+      "messages": "Mensagens",
+      "contacts": "Contatos",
+      "token": "Token"
+    }
   },
   "button": {
     "delete": "Excluir",
@@ -43,6 +64,10 @@
       "portuguese": "Português",
       "spanish": "Espanhol",
       "french": "Francês"
+    },
+    "logout": {
+      "title": "Sair",
+      "message": "Deseja realmente sair?"
     }
   },
   "sidebar": {
@@ -1415,5 +1440,61 @@
         "title": "Configurações Padrão"
       }
     }
+  },
+  "nav": {
+    "main": "Menu principal",
+    "help": "Ajuda",
+    "dashboard": "Dashboard",
+    "backup": "Backup de conversas",
+    "docs": "Documentação",
+    "postman": "Postman Collection",
+    "collapse": "Recolher menu",
+    "expand": "Expandir menu"
+  },
+  "backup": {
+    "title": "Backup de conversas",
+    "subtitle": "Baixe suas mensagens em um arquivo",
+    "step": {
+      "instance": "Escolha a instância",
+      "scope": "O que baixar",
+      "format": "Formato do arquivo"
+    },
+    "selectInstance": "Selecione uma instância",
+    "selectInstanceFirst": "Selecione uma instância primeiro.",
+    "instanceSummary": "{{messages}} mensagens e {{contacts}} contatos nesta instância.",
+    "scope": {
+      "all": {
+        "title": "Todas as conversas",
+        "description": "Todas as mensagens da instância, em um único arquivo."
+      },
+      "selected": {
+        "title": "Escolher conversas",
+        "description": "Baixe só as conversas e grupos que você marcar."
+      }
+    },
+    "searchChat": "Buscar por nome ou número",
+    "loadingChats": "Carregando conversas...",
+    "noChats": "Nenhuma conversa encontrada.",
+    "group": "Grupo",
+    "selectedCount": "{{count}} conversa(s) selecionada(s)",
+    "format": {
+      "jsonl": {
+        "title": "JSON Lines (.jsonl)",
+        "description": "Completo: guarda tudo de cada mensagem. Ideal para importar em banco de dados."
+      },
+      "csv": {
+        "title": "Planilha (.csv)",
+        "description": "Só o essencial (data, quem, texto). Abre no Excel e Google Sheets."
+      }
+    },
+    "start": "Gerar backup",
+    "running": "Gerando...",
+    "messages": "mensagens",
+    "cancelled": "Backup cancelado",
+    "success": "Backup pronto: {{count}} mensagens",
+    "error": "Erro ao gerar o backup",
+    "done": "{{amount}} mensagens salvas em {{fileName}}",
+    "noteTitle": "Sobre este backup",
+    "note": "O arquivo é gerado no seu navegador a partir das mensagens guardadas na Evolution API. Mídias (fotos, áudios, documentos) não vão dentro do arquivo. Para guardar tudo automaticamente, use o webhook da Evolution."
   }
 }

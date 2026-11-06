@@ -11,8 +11,8 @@ export function InstanceToken({ token, className }: { token: string; className?:
   const [visible, setVisible] = useState(false);
 
   return (
-    <div className={cn("flex items-center gap-3 truncate rounded-sm bg-primary/20 px-2 py-1", className)}>
-      <pre className="block truncate text-xs">{visible ? token : token?.replace(/\w/g, "*")}</pre>
+    <div className={cn("flex min-w-0 items-center gap-3 overflow-hidden rounded-md bg-muted px-2 py-1", className)}>
+      <pre className="block min-w-0 flex-1 truncate text-xs">{visible ? token : token?.replace(/\w/g, "*")}</pre>
       <Button
         variant="ghost"
         size="icon"
