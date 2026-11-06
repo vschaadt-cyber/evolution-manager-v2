@@ -1,0 +1,11 @@
+# Evolution API 2.3.7 com o painel (manager) do Gestão.
+# Compila o painel deste repositório e troca a pasta manager/dist da imagem oficial.
+FROM node:22-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM evoapicloud/evolution-api:v2.3.7
+COPY --from=build /app/dist /evolution/manager/dist
