@@ -26,3 +26,8 @@ Aplicado com `vps_docker_create` (recria o projeto; volumes `evo_pg`, `evo_redis
 
 ## Reverter
 Remover as 4 labels acima do serviço `evolution` e recriar o projeto pelo mesmo caminho.
+
+## Atualização: painel fechado na internet
+Depois do redirect, a regra do Traefik foi trocada: o serviço `evolution` agora só expõe a API. Sem `Path(/)` e sem `PathPrefix(/manager)`, a raiz e o painel respondem 404 público, e a API continua 401 sem chave. As labels de redirect foram removidas.
+
+Verificado em 2026-11-06: `/manager/` 404, `/` 404, `/instance/fetchInstances` 401. Números conectados (pelo banco): Crediario, Luminare e Phinodecor em `open`. Compras - Archer sem evento desde 17:16 UTC; conferir na tela Números.
