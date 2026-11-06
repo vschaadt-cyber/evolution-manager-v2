@@ -95,16 +95,16 @@ function Dashboard() {
     setDeleting((old) => [...old, instanceName]);
     try {
       try {
-        await logout(instanceName);
+        await logout({ instanceName, token: list.find((item) => item.name === instanceName)?.token ?? "" });
       } catch (error) {
-        console.error("Error logout:", error);
+        console.error("Error logout:", (error as Error)?.message);
       }
       await deleteInstance(instanceName);
       await new Promise((resolve) => setTimeout(resolve, 1000));
       resetTable();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      console.error("Error instance delete:", error);
+      console.error("Error instance delete:", (error as Error)?.message);
       toast.error(`Error : ${error?.response?.data?.response?.message}`);
     } finally {
       setDeleting((old) => old.filter((item) => item !== instanceName));

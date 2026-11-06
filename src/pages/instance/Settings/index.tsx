@@ -89,7 +89,7 @@ function Settings() {
       });
       toast.success(t("settings.toast.success"));
     } catch (error) {
-      console.error(t("settings.toast.success"), error);
+      console.error(t("settings.toast.success"), (error as Error)?.message);
       toast.error(t("settings.toast.error"));
     } finally {
       setUpdating(false);

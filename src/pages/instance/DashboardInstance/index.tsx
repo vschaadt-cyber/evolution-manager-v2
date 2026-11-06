@@ -83,7 +83,7 @@ function DashboardInstance() {
         setQRCode(data.code);
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error:", (error as Error)?.message);
     } finally {
       setConnecting(false);
     }
@@ -93,10 +93,10 @@ function DashboardInstance() {
     if (!instance) return;
     try {
       setBusy("restart");
-      await restart(instance.name);
+      await restart({ instanceName: instance.name, token: instance.token });
       await reloadInstance();
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error:", (error as Error)?.message);
     } finally {
       setBusy(null);
     }
@@ -106,10 +106,10 @@ function DashboardInstance() {
     if (!instance) return;
     try {
       setBusy("logout");
-      await logout(instance.name);
+      await logout({ instanceName: instance.name, token: instance.token });
       await reloadInstance();
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error:", (error as Error)?.message);
     } finally {
       setBusy(null);
     }

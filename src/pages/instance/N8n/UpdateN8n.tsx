@@ -111,7 +111,7 @@ function UpdateN8n({ n8nId, resetTable }: UpdateN8nProps) {
         console.error("Token not found");
       }
     } catch (error: any) {
-      console.error("Error:", error);
+      console.error("Error:", (error as Error)?.message);
       toast.error(`Error: ${error?.response?.data?.response?.message}`);
     }
   };
@@ -129,7 +129,7 @@ function UpdateN8n({ n8nId, resetTable }: UpdateN8nProps) {
         console.error("instance not found");
       }
     } catch (error) {
-      console.error("Erro ao excluir n8n:", error);
+      console.error("Erro ao excluir n8n:", (error as Error)?.message);
     }
   };
 

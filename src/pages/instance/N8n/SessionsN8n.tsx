@@ -49,7 +49,7 @@ function SessionsN8n({ n8nId }: { n8nId?: string }) {
       toast.success(t("n8n.toast.success.status"));
       onReset();
     } catch (error: any) {
-      console.error("Error:", error);
+      console.error("Error:", (error as Error)?.message);
       toast.error(`Error : ${error?.response?.data?.response?.message}`);
     }
   };

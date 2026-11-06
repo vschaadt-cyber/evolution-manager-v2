@@ -79,7 +79,7 @@ function NewInstance({ resetTable }: { resetTable: () => void }) {
       resetTable();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      console.error("Error:", error);
+      console.error("Error:", (error as Error)?.message);
       toast.error(`Error : ${error?.response?.data?.response?.message}`);
     }
   };

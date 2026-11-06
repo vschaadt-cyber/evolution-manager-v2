@@ -99,7 +99,7 @@ function Proxy() {
       });
       toast.success(t("proxy.toast.success"));
     } catch (error: any) {
-      console.error(t("proxy.toast.error"), error);
+      console.error(t("proxy.toast.error"), (error as Error)?.message);
       toast.error(errorMessage(error));
     } finally {
       setLoading(false);

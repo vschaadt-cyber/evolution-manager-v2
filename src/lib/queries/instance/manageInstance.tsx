@@ -8,13 +8,17 @@ const createInstance = async (instance: NewInstance) => {
   return response.data;
 };
 
-const restart = async (instanceName: string) => {
-  const response = await api.post(`/instance/restart/${instanceName}`);
+interface TokenParams {
+  instanceName: string;
+  token: string;
+}
+const restart = async ({ instanceName, token }: TokenParams) => {
+  const response = await api.post(`/instance/restart/${instanceName}`, undefined, { headers: { apikey: token } });
   return response.data;
 };
 
-const logout = async (instanceName: string) => {
-  const response = await api.delete(`/instance/logout/${instanceName}`);
+const logout = async ({ instanceName, token }: TokenParams) => {
+  const response = await api.delete(`/instance/logout/${instanceName}`, { headers: { apikey: token } });
   return response.data;
 };
 
