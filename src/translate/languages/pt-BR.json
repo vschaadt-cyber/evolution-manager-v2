@@ -7,7 +7,6 @@
     "instancesNotFound": "Nenhuma instância encontrada",
     "subtitle": "Veja suas instâncias e indicadores",
     "open": "Abrir instância",
-    "backup": "Backup das conversas",
     "refresh": "Atualizar",
     "viewList": "Ver em lista",
     "viewGrid": "Ver em cards",
@@ -159,7 +158,31 @@
       "alert": "Para conectar, escaneie o QR Code com o WhatsApp",
       "contacts": "Contatos",
       "chats": "Chats",
-      "messages": "Mensagens"
+      "messages": "Mensagens",
+      "account": "Conta do WhatsApp",
+      "accountDescription": "Dados da instância e chave de acesso",
+      "noNumber": "Número não conectado",
+      "token": "Chave da instância (API key)",
+      "refresh": "Atualizar",
+      "connection": "Conexão",
+      "connectedDescription": "Seu WhatsApp está online e pronto para uso.",
+      "connectedTitle": "WhatsApp conectado",
+      "connectedHint": "Para trocar de número, desconecte esta instância e gere um novo QR Code.",
+      "newQr": "Gerar novo QR Code",
+      "qrExpires": "O QR Code expira em cerca de 1 minuto. Se expirar, gere outro.",
+      "qrPlaceholder": "Clique em “Gerar QR Code” para conectar",
+      "steps": {
+        "1": "Abra o WhatsApp no celular",
+        "2": "Toque em Configurações > Aparelhos conectados",
+        "3": "Toque em Conectar um aparelho",
+        "4": "Aponte a câmera para o QR Code ao lado"
+      }
+    },
+    "nav": {
+      "back": "Voltar",
+      "allInstances": "Todas as instâncias",
+      "connection": "Conexão",
+      "subtitle": "Gerencie a conexão desta instância"
     }
   },
   "settings": {
@@ -1445,56 +1468,9 @@
     "main": "Menu principal",
     "help": "Ajuda",
     "dashboard": "Dashboard",
-    "backup": "Backup de conversas",
     "docs": "Documentação",
     "postman": "Postman Collection",
     "collapse": "Recolher menu",
     "expand": "Expandir menu"
-  },
-  "backup": {
-    "title": "Backup de conversas",
-    "subtitle": "Baixe suas mensagens em um arquivo",
-    "step": {
-      "instance": "Escolha a instância",
-      "scope": "O que baixar",
-      "format": "Formato do arquivo"
-    },
-    "selectInstance": "Selecione uma instância",
-    "selectInstanceFirst": "Selecione uma instância primeiro.",
-    "instanceSummary": "{{messages}} mensagens e {{contacts}} contatos nesta instância.",
-    "scope": {
-      "all": {
-        "title": "Todas as conversas",
-        "description": "Todas as mensagens da instância, em um único arquivo."
-      },
-      "selected": {
-        "title": "Escolher conversas",
-        "description": "Baixe só as conversas e grupos que você marcar."
-      }
-    },
-    "searchChat": "Buscar por nome ou número",
-    "loadingChats": "Carregando conversas...",
-    "noChats": "Nenhuma conversa encontrada.",
-    "group": "Grupo",
-    "selectedCount": "{{count}} conversa(s) selecionada(s)",
-    "format": {
-      "jsonl": {
-        "title": "JSON Lines (.jsonl)",
-        "description": "Completo: guarda tudo de cada mensagem. Ideal para importar em banco de dados."
-      },
-      "csv": {
-        "title": "Planilha (.csv)",
-        "description": "Só o essencial (data, quem, texto). Abre no Excel e Google Sheets."
-      }
-    },
-    "start": "Gerar backup",
-    "running": "Gerando...",
-    "messages": "mensagens",
-    "cancelled": "Backup cancelado",
-    "success": "Backup pronto: {{count}} mensagens",
-    "error": "Erro ao gerar o backup",
-    "done": "{{amount}} mensagens salvas em {{fileName}}",
-    "noteTitle": "Sobre este backup",
-    "note": "O arquivo é gerado no seu navegador a partir das mensagens guardadas na Evolution API. Mídias (fotos, áudios, documentos) não vão dentro do arquivo. Para guardar tudo automaticamente, use o webhook da Evolution."
   }
 }

@@ -7,7 +7,6 @@
     "instancesNotFound": "No instances found",
     "subtitle": "See your instances and key numbers",
     "open": "Open instance",
-    "backup": "Chat backup",
     "refresh": "Refresh",
     "viewList": "List view",
     "viewGrid": "Card view",
@@ -179,7 +178,31 @@
       "alert": "To connect, scan the QR code with your WhatsApp Web",
       "contacts": "Contacts",
       "chats": "Chats",
-      "messages": "Messages"
+      "messages": "Messages",
+      "account": "WhatsApp account",
+      "accountDescription": "Instance details and access key",
+      "noNumber": "Number not connected",
+      "token": "Instance key (API key)",
+      "refresh": "Refresh",
+      "connection": "Connection",
+      "connectedDescription": "Your WhatsApp is online and ready.",
+      "connectedTitle": "WhatsApp connected",
+      "connectedHint": "To switch numbers, disconnect this instance and generate a new QR Code.",
+      "newQr": "Generate new QR Code",
+      "qrExpires": "The QR Code expires in about 1 minute. Generate another if it does.",
+      "qrPlaceholder": "Click “Generate QR Code” to connect",
+      "steps": {
+        "1": "Open WhatsApp on your phone",
+        "2": "Tap Settings > Linked devices",
+        "3": "Tap Link a device",
+        "4": "Point your camera at the QR Code"
+      }
+    },
+    "nav": {
+      "back": "Back",
+      "allInstances": "All instances",
+      "connection": "Connection",
+      "subtitle": "Manage this instance's connection"
     }
   },
   "settings": {
@@ -1465,56 +1488,9 @@
     "main": "Main menu",
     "help": "Help",
     "dashboard": "Dashboard",
-    "backup": "Chat backup",
     "docs": "Documentation",
     "postman": "Postman Collection",
     "collapse": "Collapse menu",
     "expand": "Expand menu"
-  },
-  "backup": {
-    "title": "Chat backup",
-    "subtitle": "Download your messages to a file",
-    "step": {
-      "instance": "Choose the instance",
-      "scope": "What to download",
-      "format": "File format"
-    },
-    "selectInstance": "Select an instance",
-    "selectInstanceFirst": "Select an instance first.",
-    "instanceSummary": "{{messages}} messages and {{contacts}} contacts in this instance.",
-    "scope": {
-      "all": {
-        "title": "All conversations",
-        "description": "Every message of the instance in a single file."
-      },
-      "selected": {
-        "title": "Pick conversations",
-        "description": "Download only the chats and groups you tick."
-      }
-    },
-    "searchChat": "Search by name or number",
-    "loadingChats": "Loading chats...",
-    "noChats": "No chats found.",
-    "group": "Group",
-    "selectedCount": "{{count}} chat(s) selected",
-    "format": {
-      "jsonl": {
-        "title": "JSON Lines (.jsonl)",
-        "description": "Complete: keeps everything about each message. Best for importing into a database."
-      },
-      "csv": {
-        "title": "Spreadsheet (.csv)",
-        "description": "Essentials only (date, sender, text). Opens in Excel and Google Sheets."
-      }
-    },
-    "start": "Create backup",
-    "running": "Working...",
-    "messages": "messages",
-    "cancelled": "Backup cancelled",
-    "success": "Backup ready: {{count}} messages",
-    "error": "Could not create the backup",
-    "done": "{{amount}} messages saved to {{fileName}}",
-    "noteTitle": "About this backup",
-    "note": "The file is built in your browser from the messages stored in Evolution API. Media (photos, audio, documents) is not included. To keep everything automatically, use the Evolution webhook."
   }
 }

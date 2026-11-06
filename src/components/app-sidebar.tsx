@@ -1,4 +1,4 @@
-import { BookOpen, DatabaseBackup, LayoutDashboard, PanelLeftClose, PanelLeftOpen, Webhook, X } from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen, X, type LucideIcon } from "lucide-react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
@@ -10,16 +10,23 @@ import { getToken, TOKEN_ID } from "@/lib/queries/token";
 import { useTheme } from "./theme-provider";
 import { Button } from "./ui/button";
 
-type NavItem = {
+export type NavItem = {
   id: string;
   label: string;
-  icon: typeof LayoutDashboard;
+  icon: LucideIcon;
   to?: string;
   href?: string;
   end?: boolean;
 };
 
+export type NavSection = {
+  id: string;
+  label: string;
+  items: NavItem[];
+};
+
 type Props = {
+  sections: NavSection[];
   collapsed: boolean;
   onToggleCollapsed: () => void;
   mobileOpen: boolean;
@@ -57,7 +64,7 @@ function SidebarLink({ item, collapsed, onNavigate }: { item: NavItem; collapsed
   );
 }
 
-export function AppSidebar({ collapsed, onToggleCollapsed, mobileOpen, onCloseMobile }: Props) {
+export function AppSidebar({ sections, collapsed, onToggleCollapsed, mobileOpen, onCloseMobile }: Props) {
   const { t } = useTranslation();
   const { theme } = useTheme();
 
@@ -67,16 +74,6 @@ export function AppSidebar({ collapsed, onToggleCollapsed, mobileOpen, onCloseMo
 
   const isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
   const logo = isDark ? "/assets/images/gestao-logo-dark.png" : "/assets/images/gestao-logo.png";
-
-  const main: NavItem[] = [
-    { id: "dashboard", label: t("nav.dashboard"), icon: LayoutDashboard, to: "/manager", end: true },
-    { id: "backup", label: t("nav.backup"), icon: DatabaseBackup, to: "/manager/backup" },
-  ];
-
-  const help: NavItem[] = [
-    { id: "docs", label: t("nav.docs"), icon: BookOpen, href: "https://doc.evolution-api.com" },
-    { id: "postman", label: t("nav.postman"), icon: Webhook, href: "https://evolution-api.com/postman" },
-  ];
 
   return (
     <>
@@ -101,19 +98,14 @@ export function AppSidebar({ collapsed, onToggleCollapsed, mobileOpen, onCloseMo
         </div>
 
         <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-4">
-          <div className="space-y-1">
-            {!collapsed && <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("nav.main")}</p>}
-            {main.map((item) => (
-              <SidebarLink key={item.id} item={item} collapsed={collapsed} onNavigate={onCloseMobile} />
-            ))}
-          </div>
-
-          <div className="space-y-1">
-            {!collapsed && <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{t("nav.help")}</p>}
-            {help.map((item) => (
-              <SidebarLink key={item.id} item={item} collapsed={collapsed} onNavigate={onCloseMobile} />
-            ))}
-          </div>
+          {sections.map((section) => (
+            <div key={section.id} className="space-y-1">
+              {!collapsed && <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{section.label}</p>}
+              {section.items.map((item) => (
+                <SidebarLink key={item.id} item={item} collapsed={collapsed} onNavigate={onCloseMobile} />
+              ))}
+            </div>
+          ))}
         </nav>
 
         <div className="border-t p-3">

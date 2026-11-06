@@ -1,39 +1,97 @@
-import React from "react";
+import {
+  ArrowLeft,
+  Bot,
+  Cable,
+  Cog,
+  Globe,
+  LayoutDashboard,
+  MessageSquareText,
+  Network,
+  Rabbit,
+  Radio,
+  Share2,
+  Sparkles,
+  Webhook,
+  Workflow,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
+import React, { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 
-import { Footer } from "@/components/footer";
-import { Header } from "@/components/header";
-import { Sidebar } from "@/components/sidebar";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import type { NavSection } from "@/components/app-sidebar";
+import { InstanceStatus } from "@/components/instance-status";
 
-import { InstanceProvider } from "@/contexts/InstanceContext";
+import { InstanceProvider, useInstance } from "@/contexts/InstanceContext";
+
+import { MainLayout } from "./MainLayout";
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
-function InstanceLayout({ children }: LayoutProps) {
+function InstanceShell({ children }: LayoutProps) {
+  const { t } = useTranslation();
   const { instanceId } = useParams<{ instanceId: string }>();
+  const { instance } = useInstance();
+
+  const sections = useMemo<NavSection[]>(() => {
+    const base = `/manager/instance/${instanceId}`;
+    const item = (id: string, label: string, icon: LucideIcon) => ({ id, label, icon, to: `${base}/${id}` });
+
+    return [
+      {
+        id: "back",
+        label: t("instance.nav.back"),
+        items: [{ id: "back", label: t("instance.nav.allInstances"), icon: ArrowLeft, to: "/manager", end: true }],
+      },
+      {
+        id: "connection",
+        label: t("instance.nav.connection"),
+        items: [item("dashboard", t("sidebar.dashboard"), LayoutDashboard), item("settings", t("sidebar.settings"), Cog), item("proxy", t("sidebar.proxy"), Globe)],
+      },
+      {
+        id: "events",
+        label: t("sidebar.events"),
+        items: [item("webhook", t("sidebar.webhook"), Webhook), item("websocket", t("sidebar.websocket"), Cable), item("rabbitmq", t("sidebar.rabbitmq"), Rabbit), item("sqs", t("sidebar.sqs"), Network)],
+      },
+      {
+        id: "integrations",
+        label: t("sidebar.integrations"),
+        items: [
+          item("chatwoot", t("sidebar.chatwoot"), MessageSquareText),
+          item("n8n", t("sidebar.n8n"), Workflow),
+          item("typebot", t("sidebar.typebot"), Bot),
+          item("openai", t("sidebar.openai"), Sparkles),
+          item("dify", t("sidebar.dify"), Share2),
+          item("flowise", t("sidebar.flowise"), Radio),
+          item("evoai", t("sidebar.evoai"), Zap),
+          item("evolutionBot", t("sidebar.evolutionBot"), Bot),
+        ],
+      },
+    ];
+  }, [instanceId, t]);
 
   return (
-    <InstanceProvider>
-      <div className="flex h-screen flex-col">
-        <Header instanceId={instanceId} />
+    <MainLayout
+      sections={sections}
+      title={
+        <>
+          <span className="truncate">{instance?.name ?? "…"}</span>
+          {instance && <InstanceStatus status={instance.connectionStatus} />}
+        </>
+      }
+      subtitle={instance?.profileName ? `${instance.profileName}${instance.ownerJid ? ` · ${instance.ownerJid.split("@")[0]}` : ""}` : t("instance.nav.subtitle")}>
+      {children}
+    </MainLayout>
+  );
+}
 
-        <div className="flex min-h-[calc(100vh_-_56px)] flex-1 flex-col md:flex-row">
-          <ScrollArea className="mr-2 py-6 md:w-64">
-            <div className="flex h-full">
-              <Sidebar />
-            </div>
-          </ScrollArea>
-          <ScrollArea className="w-full">
-            <div className="flex h-full flex-col">
-              <div className="my-2 flex flex-1 flex-col gap-2 pl-2 pr-4">{children}</div>
-              <Footer />
-            </div>
-          </ScrollArea>
-        </div>
-      </div>
+function InstanceLayout({ children }: LayoutProps) {
+  return (
+    <InstanceProvider>
+      <InstanceShell>{children}</InstanceShell>
     </InstanceProvider>
   );
 }

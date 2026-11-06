@@ -6,7 +6,6 @@ import PublicRoute from "@/components/providers/public-route";
 import { InstanceLayout } from "@/layout/InstanceLayout";
 import { MainLayout } from "@/layout/MainLayout";
 
-import { Backup } from "@/pages/Backup";
 import Dashboard from "@/pages/Dashboard";
 import { Chat } from "@/pages/instance/Chat";
 import { Chatwoot } from "@/pages/instance/Chatwoot";
@@ -47,16 +46,6 @@ const router = createBrowserRouter([
       <ProtectedRoute>
         <MainLayout>
           <Dashboard />
-        </MainLayout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/manager/backup",
-    element: (
-      <ProtectedRoute>
-        <MainLayout>
-          <Backup />
         </MainLayout>
       </ProtectedRoute>
     ),

@@ -1,9 +1,9 @@
-import { LogOut, Menu } from "lucide-react";
-import React, { useState } from "react";
+import { BookOpen, LayoutDashboard, LogOut, Menu, Webhook } from "lucide-react";
+import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar, NavSection } from "@/components/app-sidebar";
 import { LanguageToggle } from "@/components/language-toggle";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
@@ -13,14 +13,17 @@ import { logout } from "@/lib/queries/token";
 
 interface LayoutProps {
   children: React.ReactNode;
+  sections?: NavSection[];
+  title?: React.ReactNode;
+  subtitle?: React.ReactNode;
+  headerExtra?: React.ReactNode;
 }
 
 const COLLAPSED_KEY = "gestao-sidebar-collapsed";
 
-function MainLayout({ children }: LayoutProps) {
+function MainLayout({ children, sections, title, subtitle, headerExtra }: LayoutProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { pathname } = useLocation();
 
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSED_KEY) === "1");
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -33,9 +36,24 @@ function MainLayout({ children }: LayoutProps) {
     });
   };
 
-  const isBackup = pathname.startsWith("/manager/backup");
-  const title = isBackup ? t("backup.title") : t("dashboard.title");
-  const subtitle = isBackup ? t("backup.subtitle") : t("dashboard.subtitle");
+  const defaultSections = useMemo<NavSection[]>(
+    () => [
+      {
+        id: "main",
+        label: t("nav.main"),
+        items: [{ id: "dashboard", label: t("nav.dashboard"), icon: LayoutDashboard, to: "/manager", end: true }],
+      },
+      {
+        id: "help",
+        label: t("nav.help"),
+        items: [
+          { id: "docs", label: t("nav.docs"), icon: BookOpen, href: "https://doc.evolution-api.com" },
+          { id: "postman", label: t("nav.postman"), icon: Webhook, href: "https://evolution-api.com/postman" },
+        ],
+      },
+    ],
+    [t],
+  );
 
   const handleLogout = () => {
     logout();
@@ -44,7 +62,7 @@ function MainLayout({ children }: LayoutProps) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      <AppSidebar collapsed={collapsed} onToggleCollapsed={toggleCollapsed} mobileOpen={mobileOpen} onCloseMobile={() => setMobileOpen(false)} />
+      <AppSidebar sections={sections ?? defaultSections} collapsed={collapsed} onToggleCollapsed={toggleCollapsed} mobileOpen={mobileOpen} onCloseMobile={() => setMobileOpen(false)} />
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b bg-card px-4 md:px-6">
@@ -53,12 +71,13 @@ function MainLayout({ children }: LayoutProps) {
               <Menu size={20} />
             </Button>
             <div className="min-w-0">
-              <h1 className="truncate text-base font-semibold leading-tight">{title}</h1>
-              <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
+              <h1 className="flex items-center gap-2 truncate text-base font-semibold leading-tight">{title ?? t("dashboard.title")}</h1>
+              <p className="truncate text-xs text-muted-foreground">{subtitle ?? t("dashboard.subtitle")}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
+            {headerExtra}
             <LanguageToggle />
             <ModeToggle />
             <Button variant="outline" size="icon" onClick={() => setLogoutConfirmation(true)} aria-label={t("header.logout.title")}>

@@ -1,4 +1,4 @@
-import { CircleUser, DatabaseBackup, ExternalLink, LayoutGrid, List, MessageCircle, Plug, PlugZap, RefreshCw, Search, Server, Trash2 } from "lucide-react";
+import { CircleUser, ExternalLink, LayoutGrid, List, MessageCircle, Plug, PlugZap, RefreshCw, Search, Server, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
@@ -57,13 +57,6 @@ function InstanceActions({ instance, onDelete, deleting }: { instance: Instance;
         <Button variant="ghost" size="icon" asChild>
           <Link to={`/manager/instance/${instance.id}/dashboard`}>
             <ExternalLink size={17} />
-          </Link>
-        </Button>
-      </TooltipWrapper>
-      <TooltipWrapper content={t("dashboard.backup")} side="top">
-        <Button variant="ghost" size="icon" asChild>
-          <Link to={`/manager/backup?instance=${encodeURIComponent(instance.name)}`}>
-            <DatabaseBackup size={17} />
           </Link>
         </Button>
       </TooltipWrapper>
