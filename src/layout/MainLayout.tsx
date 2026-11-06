@@ -9,6 +9,7 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 
+import { ehEmbutido } from "@/lib/acessoGestao";
 import { countConnectionErrors } from "@/lib/diagnostics/rules";
 import { useFetchInstances } from "@/lib/queries/instance/fetchInstances";
 import { logout } from "@/lib/queries/token";
@@ -68,6 +69,15 @@ function MainLayout({ children, sections, title, subtitle, headerExtra }: Layout
     logout();
     navigate("/manager/login");
   };
+
+  // Embutido no Gestão: o Gestão já tem cabeçalho e menu, então aqui fica só o conteúdo.
+  if (ehEmbutido()) {
+    return (
+      <main className="h-screen overflow-y-auto bg-background">
+        <div className="mx-auto w-full max-w-[1400px] p-3 md:p-4">{children}</div>
+      </main>
+    );
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">

@@ -68,6 +68,9 @@ function Login() {
     navigate("/manager/");
   };
 
+  // Veio de um link do Gestão que expirou ou já foi usado (?motivo=link-expirado)
+  const linkExpirado = new URLSearchParams(window.location.search).get("motivo") === "link-expirado";
+
   return (
     <div className="flex min-h-screen flex-col">
       <div className="flex items-center justify-center pt-2">
@@ -82,6 +85,11 @@ function Login() {
           <Form {...loginForm}>
             <form onSubmit={loginForm.handleSubmit(handleLogin)}>
               <CardContent>
+                {linkExpirado && (
+                  <p role="alert" className="mb-4 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+                    Link expirado, reabra pelo Gestão
+                  </p>
+                )}
                 <div className="grid w-full items-center gap-4">
                   <FormInput required name="serverUrl" label={t("login.form.serverUrl")}>
                     <Input />
