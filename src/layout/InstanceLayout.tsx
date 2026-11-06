@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 
 import type { NavSection } from "@/components/app-sidebar";
+import { InstancePhone } from "@/components/instance-phone";
 import { InstanceStatus } from "@/components/instance-status";
 
 import { InstanceProvider, useInstance } from "@/contexts/InstanceContext";
@@ -56,7 +57,16 @@ function InstanceShell({ children }: LayoutProps) {
           {instance && <InstanceStatus status={instance.connectionStatus} />}
         </>
       }
-      subtitle={instance?.profileName ? `${instance.profileName}${instance.ownerJid ? ` · ${instance.ownerJid.split("@")[0]}` : ""}` : t("instance.nav.subtitle")}>
+      subtitle={
+        instance ? (
+          <span className="inline-flex min-w-0 items-center gap-2">
+            {instance.profileName && <span className="truncate">{instance.profileName} ·</span>}
+            <InstancePhone instance={instance} compact />
+          </span>
+        ) : (
+          t("instance.nav.subtitle")
+        )
+      }>
       {children}
     </MainLayout>
   );

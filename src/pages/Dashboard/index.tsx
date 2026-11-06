@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import { InstanceStatus } from "@/components/instance-status";
+import { InstancePhone } from "@/components/instance-phone";
 import { InstanceToken } from "@/components/instance-token";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -161,7 +162,10 @@ function Dashboard() {
                 key={filter.value}
                 type="button"
                 onClick={() => setStatusFilter(filter.value)}
-                className={cn("rounded-md px-3 py-1.5 text-sm font-medium transition-colors", statusFilter === filter.value ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+                className={cn(
+                  "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                  statusFilter === filter.value ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+                )}>
                 {filter.label} <span className="ml-1 text-xs opacity-70">{filter.count}</span>
               </button>
             ))}
@@ -220,7 +224,9 @@ function Dashboard() {
                     <td className="px-4 py-3">
                       <InstanceStatus status={instance.connectionStatus} />
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">{instance.ownerJid ? instance.ownerJid.split("@")[0] : "—"}</td>
+                    <td className="px-4 py-3">
+                      <InstancePhone instance={instance} compact />
+                    </td>
                     <td className="px-4 py-3 text-right tabular-nums">{fmt(instance._count?.Message ?? 0)}</td>
                     <td className="px-4 py-3 text-right tabular-nums">{fmt(instance._count?.Contact ?? 0)}</td>
                     <td className="px-4 py-3">
@@ -246,11 +252,13 @@ function Dashboard() {
                   <InstanceAvatar instance={instance} size="h-12 w-12" />
                   <span className="min-w-0">
                     <span className="block truncate font-semibold">{instance.name}</span>
-                    <span className="block truncate text-xs text-muted-foreground">{instance.profileName || (instance.ownerJid ? instance.ownerJid.split("@")[0] : "—")}</span>
+                    <span className="block truncate text-xs text-muted-foreground">{instance.profileName || instance.name}</span>
                   </span>
                 </Link>
                 <InstanceStatus status={instance.connectionStatus} />
               </div>
+
+              <InstancePhone instance={instance} compact />
 
               <InstanceToken token={instance.token} />
 

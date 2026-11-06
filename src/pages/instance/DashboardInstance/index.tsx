@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import QRCode from "react-qr-code";
 
+import { InstancePhone } from "@/components/instance-phone";
 import { InstanceStatus } from "@/components/instance-status";
 import { InstanceToken } from "@/components/instance-token";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -151,7 +152,9 @@ function DashboardInstance() {
               </Avatar>
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold">{instance.profileName || instance.name}</p>
-                <p className="truncate text-sm text-muted-foreground">{instance.ownerJid ? instance.ownerJid.split("@")[0] : t("instance.dashboard.noNumber")}</p>
+                <div className="min-w-0 text-sm text-muted-foreground">
+                  <InstancePhone instance={instance} />
+                </div>
               </div>
               <InstanceStatus status={instance.connectionStatus} />
             </div>
