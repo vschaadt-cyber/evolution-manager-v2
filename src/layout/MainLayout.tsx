@@ -1,4 +1,4 @@
-import { BookOpen, LayoutDashboard, LogOut, Menu, Webhook } from "lucide-react";
+import { Activity, BookOpen, LayoutDashboard, LogOut, Menu, Webhook } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -9,6 +9,8 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 
+import { countConnectionErrors } from "@/lib/diagnostics/rules";
+import { useFetchInstances } from "@/lib/queries/instance/fetchInstances";
 import { logout } from "@/lib/queries/token";
 
 interface LayoutProps {
@@ -36,12 +38,19 @@ function MainLayout({ children, sections, title, subtitle, headerExtra }: Layout
     });
   };
 
+  // Badge do menu: instâncias com erro de conexão. Usa o mesmo cache da lista de instâncias.
+  const { data: instances } = useFetchInstances();
+  const errorCount = useMemo(() => countConnectionErrors(Array.isArray(instances) ? instances : []), [instances]);
+
   const defaultSections = useMemo<NavSection[]>(
     () => [
       {
         id: "main",
         label: t("nav.main"),
-        items: [{ id: "dashboard", label: t("nav.dashboard"), icon: LayoutDashboard, to: "/manager", end: true }],
+        items: [
+          { id: "dashboard", label: t("nav.dashboard"), icon: LayoutDashboard, to: "/manager", end: true },
+          { id: "diagnostico", label: "Logs e Diagnóstico", icon: Activity, to: "/manager/diagnostico", badge: errorCount },
+        ],
       },
       {
         id: "help",
@@ -52,7 +61,7 @@ function MainLayout({ children, sections, title, subtitle, headerExtra }: Layout
         ],
       },
     ],
-    [t],
+    [t, errorCount],
   );
 
   const handleLogout = () => {

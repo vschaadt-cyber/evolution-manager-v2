@@ -17,6 +17,8 @@ export type NavItem = {
   to?: string;
   href?: string;
   end?: boolean;
+  // Contagem mostrada em vermelho ao lado do item (ex.: instâncias com erro). Zero ou ausente não mostra nada.
+  badge?: number;
 };
 
 export type NavSection = {
@@ -37,16 +39,27 @@ function SidebarLink({ item, collapsed, onNavigate }: { item: NavItem; collapsed
   const Icon = item.icon;
   const base = "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors";
 
+  const badge = item.badge ?? 0;
+
   const content = (
     <>
-      <Icon size={18} className="shrink-0" />
-      {!collapsed && <span className="truncate">{item.label}</span>}
+      <span className="relative shrink-0">
+        <Icon size={18} />
+        {collapsed && badge > 0 && <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-red-500" aria-hidden />}
+      </span>
+      {!collapsed && <span className="min-w-0 flex-1 truncate">{item.label}</span>}
+      {!collapsed && badge > 0 && <span className="ml-auto rounded-full bg-red-600 px-2 py-0.5 text-[11px] font-semibold leading-none text-white">{badge}</span>}
     </>
   );
 
   if (item.href) {
     return (
-      <a href={item.href} target="_blank" rel="noopener noreferrer" title={item.label} className={cn(base, "text-muted-foreground hover:bg-muted hover:text-foreground", collapsed && "justify-center px-2")}>
+      <a
+        href={item.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        title={item.label}
+        className={cn(base, "text-muted-foreground hover:bg-muted hover:text-foreground", collapsed && "justify-center px-2")}>
         {content}
       </a>
     );
@@ -87,11 +100,7 @@ export function AppSidebar({ sections, collapsed, onToggleCollapsed, mobileOpen,
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
         )}>
         <div className={cn("flex h-16 items-center border-b px-4", collapsed ? "justify-center px-2" : "justify-between")}>
-          {collapsed ? (
-            <img src="/assets/images/gestao-favicon.png" alt="Gestão" className="h-8 w-8 object-contain" />
-          ) : (
-            <img src={logo} alt="Gestão" className="h-9 w-auto object-contain" />
-          )}
+          {collapsed ? <img src="/assets/images/gestao-favicon.png" alt="Gestão" className="h-8 w-8 object-contain" /> : <img src={logo} alt="Gestão" className="h-9 w-auto object-contain" />}
           <Button variant="ghost" size="icon" className="md:hidden" onClick={onCloseMobile} aria-label="Fechar menu">
             <X size={18} />
           </Button>
@@ -110,7 +119,12 @@ export function AppSidebar({ sections, collapsed, onToggleCollapsed, mobileOpen,
 
         <div className="border-t p-3">
           {!collapsed && version && <p className="mb-2 px-3 text-xs text-muted-foreground">Evolution API v{version}</p>}
-          <Button variant="ghost" size="sm" className={cn("hidden w-full md:inline-flex", collapsed ? "justify-center px-2" : "justify-start gap-3 px-3")} onClick={onToggleCollapsed} title={collapsed ? t("nav.expand") : t("nav.collapse")}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn("hidden w-full md:inline-flex", collapsed ? "justify-center px-2" : "justify-start gap-3 px-3")}
+            onClick={onToggleCollapsed}
+            title={collapsed ? t("nav.expand") : t("nav.collapse")}>
             {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
             {!collapsed && <span>{t("nav.collapse")}</span>}
           </Button>

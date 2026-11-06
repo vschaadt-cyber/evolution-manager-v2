@@ -7,6 +7,7 @@ import { InstanceLayout } from "@/layout/InstanceLayout";
 import { MainLayout } from "@/layout/MainLayout";
 
 import Dashboard from "@/pages/Dashboard";
+import Diagnostics from "@/pages/Diagnostics";
 import { DashboardInstance } from "@/pages/instance/DashboardInstance";
 import { N8n } from "@/pages/instance/N8n";
 import { Proxy } from "@/pages/instance/Proxy";
@@ -29,6 +30,16 @@ const router = createBrowserRouter([
       <ProtectedRoute>
         <MainLayout>
           <Dashboard />
+        </MainLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/manager/diagnostico",
+    element: (
+      <ProtectedRoute>
+        <MainLayout title="Logs e Diagnóstico" subtitle="Estado das conexões, webhooks e proxies de todas as instâncias">
+          <Diagnostics />
         </MainLayout>
       </ProtectedRoute>
     ),

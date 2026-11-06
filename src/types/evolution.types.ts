@@ -35,6 +35,9 @@ export type Instance = {
   clientName: string;
   createdAt: string;
   updatedAt: string;
+  // Motivo da última desconexão (código do Baileys) e quando aconteceu. Vêm de /instance/fetchInstances.
+  disconnectionReasonCode?: number | null;
+  disconnectionAt?: string | null;
   Setting: Settings;
   _count?: {
     Message?: number;
