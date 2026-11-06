@@ -1,21 +1,4 @@
-import {
-  ArrowLeft,
-  Bot,
-  Cable,
-  Cog,
-  Globe,
-  LayoutDashboard,
-  MessageSquareText,
-  Network,
-  Rabbit,
-  Radio,
-  Share2,
-  Sparkles,
-  Webhook,
-  Workflow,
-  Zap,
-  type LucideIcon,
-} from "lucide-react";
+import { ArrowLeft, Cog, Globe, LayoutDashboard, Webhook, Workflow, type LucideIcon } from "lucide-react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
@@ -54,21 +37,12 @@ function InstanceShell({ children }: LayoutProps) {
       {
         id: "events",
         label: t("sidebar.events"),
-        items: [item("webhook", t("sidebar.webhook"), Webhook), item("websocket", t("sidebar.websocket"), Cable), item("rabbitmq", t("sidebar.rabbitmq"), Rabbit), item("sqs", t("sidebar.sqs"), Network)],
+        items: [item("webhook", t("sidebar.webhook"), Webhook)],
       },
       {
         id: "integrations",
         label: t("sidebar.integrations"),
-        items: [
-          item("chatwoot", t("sidebar.chatwoot"), MessageSquareText),
-          item("n8n", t("sidebar.n8n"), Workflow),
-          item("typebot", t("sidebar.typebot"), Bot),
-          item("openai", t("sidebar.openai"), Sparkles),
-          item("dify", t("sidebar.dify"), Share2),
-          item("flowise", t("sidebar.flowise"), Radio),
-          item("evoai", t("sidebar.evoai"), Zap),
-          item("evolutionBot", t("sidebar.evolutionBot"), Bot),
-        ],
+        items: [item("n8n", t("sidebar.n8n"), Workflow)],
       },
     ];
   }, [instanceId, t]);

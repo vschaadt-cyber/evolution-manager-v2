@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Separator } from "@radix-ui/react-dropdown-menu";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -8,8 +7,9 @@ import { toast } from "react-toastify";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
-import { Form, FormInput, FormSwitch } from "@/components/ui/form";
+import { Form, FormInput, FormSelect, FormSwitch } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 
 import { useInstance } from "@/contexts/InstanceContext";
 
@@ -28,6 +28,20 @@ const formSchema = z.object({
 });
 
 type FormSchemaType = z.infer<typeof formSchema>;
+
+const PROTOCOLS = [
+  { value: "http", label: "HTTP" },
+  { value: "https", label: "HTTPS" },
+  { value: "socks4", label: "SOCKS4" },
+  { value: "socks5", label: "SOCKS5" },
+];
+
+function errorMessage(error: any): string {
+  const message = error?.response?.data?.response?.message;
+  if (Array.isArray(message)) return message.join(" ");
+  if (typeof message === "string") return message;
+  return "Não foi possível salvar o proxy. Verifique a conexão com a Evolution.";
+}
 
 function Proxy() {
   const { t } = useTranslation();
@@ -86,7 +100,7 @@ function Proxy() {
       toast.success(t("proxy.toast.success"));
     } catch (error: any) {
       console.error(t("proxy.toast.error"), error);
-      toast.error(`Error : ${error?.response?.data?.response?.message}`);
+      toast.error(errorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -102,9 +116,7 @@ function Proxy() {
             <div className="mx-4 space-y-2 divide-y [&>*]:p-4">
               <FormSwitch name="enabled" label={t("proxy.form.enabled.label")} className="w-full justify-between" helper={t("proxy.form.enabled.description")} />
               <div className="grid gap-4 sm:grid-cols-[10rem_1fr_10rem] md:gap-8">
-                <FormInput name="protocol" label={t("proxy.form.protocol.label")}>
-                  <Input />
-                </FormInput>
+                <FormSelect name="protocol" label={t("proxy.form.protocol.label")} options={PROTOCOLS} />
                 <FormInput name="host" label={t("proxy.form.host.label")}>
                   <Input />
                 </FormInput>
