@@ -1,5 +1,5 @@
 import { CircleUser, ExternalLink, LayoutGrid, List, MessageCircle, Plug, PlugZap, RefreshCw, Search, Server, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -8,11 +8,14 @@ import { InstanceStatus } from "@/components/instance-status";
 import { InstancePhone } from "@/components/instance-phone";
 import { InstanceToken } from "@/components/instance-token";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { TooltipWrapper } from "@/components/ui/tooltip";
+
+import { useReinicios } from "@/hooks/useReinicios";
 
 import { useFetchInstances } from "@/lib/queries/instance/fetchInstances";
 import { useManageInstance } from "@/lib/queries/instance/manageInstance";
@@ -27,7 +30,7 @@ const VIEW_KEY = "gestao-instances-view";
 
 type StatusFilter = "all" | "open" | "connecting" | "close";
 
-function StatCard({ icon: Icon, label, value, tone }: { icon: typeof Server; label: string; value: string; tone: string }) {
+function StatCard({ icon: Icon, label, value, tone, extra }: { icon: typeof Server; label: string; value: string; tone: string; extra?: ReactNode }) {
   return (
     <Card className="flex-row items-center gap-4 p-4">
       <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl", tone)}>
@@ -36,6 +39,7 @@ function StatCard({ icon: Icon, label, value, tone }: { icon: typeof Server; lab
       <div className="min-w-0">
         <p className="truncate text-xs text-muted-foreground">{label}</p>
         <p className="text-2xl font-semibold leading-tight">{value}</p>
+        {extra}
       </div>
     </Card>
   );
@@ -113,6 +117,10 @@ function Dashboard() {
 
   const list = useMemo(() => (Array.isArray(instances) ? instances : []), [instances]);
 
+  // Reinícios em curso (feitos nesta aba): badge na lista e nos contadores; a lista é reconsultada a cada 2 s.
+  const { fases } = useReinicios(list, resetTable);
+  const reiniciando = Object.values(fases).filter((fase) => fase === "reiniciando" || fase === "iniciando").length;
+
   const stats = useMemo(() => {
     const isClosed = (status: string) => status === "close" || status === "closed";
     return {
@@ -148,7 +156,13 @@ function Dashboard() {
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <StatCard icon={Server} label={t("dashboard.stats.total")} value={fmt(stats.total)} tone="bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300" />
-        <StatCard icon={Plug} label={t("dashboard.stats.connected")} value={fmt(stats.open)} tone="bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300" />
+        <StatCard
+          icon={Plug}
+          label={t("dashboard.stats.connected")}
+          value={fmt(stats.open)}
+          tone="bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300"
+          extra={reiniciando > 0 ? <Badge variant="warning">{t("instance.restart.counter", "Reiniciando… {{count}}", { count: reiniciando })}</Badge> : null}
+        />
         <StatCard icon={PlugZap} label={t("dashboard.stats.disconnected")} value={fmt(stats.closed)} tone="bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-300" />
         <StatCard icon={MessageCircle} label={t("dashboard.stats.messages")} value={fmt(stats.messages)} tone="bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-300" />
         <StatCard icon={CircleUser} label={t("dashboard.stats.contacts")} value={fmt(stats.contacts)} tone="bg-violet-100 text-violet-600 dark:bg-violet-500/15 dark:text-violet-300" />
@@ -222,7 +236,7 @@ function Dashboard() {
                       </Link>
                     </td>
                     <td className="px-4 py-3">
-                      <InstanceStatus status={instance.connectionStatus} />
+                      <InstanceStatus status={instance.connectionStatus} fase={fases[instance.name]} />
                     </td>
                     <td className="px-4 py-3">
                       <InstancePhone instance={instance} compact />
@@ -255,7 +269,7 @@ function Dashboard() {
                     <span className="block truncate text-xs text-muted-foreground">{instance.profileName || instance.name}</span>
                   </span>
                 </Link>
-                <InstanceStatus status={instance.connectionStatus} />
+                <InstanceStatus status={instance.connectionStatus} fase={fases[instance.name]} />
               </div>
 
               <InstancePhone instance={instance} compact />

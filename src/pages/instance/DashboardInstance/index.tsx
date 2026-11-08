@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 import { useInstance } from "@/contexts/InstanceContext";
+import { useReinicios } from "@/hooks/useReinicios";
 
 import { useManageInstance } from "@/lib/queries/instance/manageInstance";
 import { getToken, TOKEN_ID } from "@/lib/queries/token";
@@ -42,6 +43,15 @@ function DashboardInstance() {
 
   const { connect, logout, restart } = useManageInstance();
   const { instance, reloadInstance } = useInstance();
+
+  // Reinício em curso: confere a conexão a cada 2 s até "Conectado" ou o timeout de 60 s.
+  const instanciasReinicio = useMemo(
+    () => (instance ? [{ name: instance.name, connectionStatus: instance.connectionStatus, updatedAt: instance.updatedAt }] : []),
+    [instance?.name, instance?.connectionStatus, instance?.updatedAt],
+  );
+  const { fases, emCurso, iniciar, descartar } = useReinicios(instanciasReinicio, reloadInstance);
+  const faseReinicio = instance ? (fases[instance.name] ?? null) : null;
+  const reiniciando = emCurso && (faseReinicio === "reiniciando" || faseReinicio === "iniciando");
 
   useEffect(() => {
     if (instance) {
@@ -91,11 +101,14 @@ function DashboardInstance() {
 
   const handleRestart = async () => {
     if (!instance) return;
+    // Marca o horário do clique antes da chamada: a tela já mostra "Reiniciando…" e o polling começa.
+    iniciar(instance.name);
     try {
       setBusy("restart");
       await restart({ instanceName: instance.name, token: instance.token });
       await reloadInstance();
     } catch (error) {
+      descartar(instance.name);
       console.error("Error:", (error as Error)?.message);
     } finally {
       setBusy(null);
@@ -156,7 +169,7 @@ function DashboardInstance() {
                   <InstancePhone instance={instance} />
                 </div>
               </div>
-              <InstanceStatus status={instance.connectionStatus} />
+              <InstanceStatus status={instance.connectionStatus} fase={faseReinicio} />
             </div>
 
             <div className="space-y-1.5">
@@ -168,13 +181,19 @@ function DashboardInstance() {
               <Button variant="outline" size="sm" className="gap-2" onClick={() => reloadInstance()}>
                 <RefreshCw size={16} /> {t("instance.dashboard.refresh")}
               </Button>
-              <Button variant="outline" size="sm" className="gap-2" onClick={handleRestart} disabled={busy !== null}>
-                <Power size={16} /> {t("instance.dashboard.button.restart")}
+              <Button variant="outline" size="sm" className="gap-2" onClick={handleRestart} disabled={busy !== null || reiniciando}>
+                <Power size={16} /> {faseReinicio === "sem_resposta" ? t("instance.restart.retry", "Tentar de novo") : t("instance.dashboard.button.restart")}
               </Button>
-              <Button variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive" onClick={handleLogout} disabled={busy !== null || instance.connectionStatus === "close"}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 text-destructive hover:text-destructive"
+                onClick={handleLogout}
+                disabled={busy !== null || reiniciando || instance.connectionStatus === "close"}>
                 <Link2Off size={16} /> {t("instance.dashboard.button.disconnect")}
               </Button>
             </div>
+            {faseReinicio === "sem_resposta" && <p className="text-sm text-destructive">{t("instance.restart.noResponseHint", "Sem resposta após o reinício. Confira o celular e tente de novo.")}</p>}
           </CardContent>
         </Card>
 
