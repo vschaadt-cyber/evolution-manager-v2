@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { CircleUser, Link2Off, MessageCircle, Power, QrCode, RefreshCw, Smartphone, UsersRound } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import QRCode from "react-qr-code";
 
@@ -15,6 +15,8 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useInstance } from "@/contexts/InstanceContext";
 import { useReinicios } from "@/hooks/useReinicios";
 
+import { registrarEventoInstancia } from "@/lib/historicoInstancia";
+import { FaseReinicio } from "@/lib/reinicioInstancia";
 import { useManageInstance } from "@/lib/queries/instance/manageInstance";
 import { getToken, TOKEN_ID } from "@/lib/queries/token";
 
@@ -78,6 +80,17 @@ function DashboardInstance() {
     }
   }, [isOpen]);
 
+  // Reconexão: quando o reinício vira "Conectado", grava o evento "conexao" no histórico.
+  const faseAnterior = useRef<FaseReinicio | null>(null);
+  useEffect(() => {
+    const anterior = faseAnterior.current;
+    faseAnterior.current = faseReinicio;
+    const estavaReiniciando = anterior === "reiniciando" || anterior === "iniciando";
+    if (instance && estavaReiniciando && !faseReinicio && instance.connectionStatus === "open") {
+      registrarEventoInstancia({ instanciaId: instance.id, chaveInstancia: instance.token, tipo: "conexao", detalhe: { estado: "open" } });
+    }
+  }, [faseReinicio]);
+
   const handleConnect = async (usePairingCode: boolean) => {
     if (!instance || !token) return;
     try {
@@ -106,6 +119,7 @@ function DashboardInstance() {
     try {
       setBusy("restart");
       await restart({ instanceName: instance.name, token: instance.token });
+      registrarEventoInstancia({ instanciaId: instance.id, chaveInstancia: instance.token, tipo: "reinicio" });
       await reloadInstance();
     } catch (error) {
       descartar(instance.name);
@@ -120,6 +134,7 @@ function DashboardInstance() {
     try {
       setBusy("logout");
       await logout({ instanceName: instance.name, token: instance.token });
+      registrarEventoInstancia({ instanciaId: instance.id, chaveInstancia: instance.token, tipo: "desconexao" });
       await reloadInstance();
     } catch (error) {
       console.error("Error:", (error as Error)?.message);

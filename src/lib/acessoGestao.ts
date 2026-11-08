@@ -10,6 +10,7 @@
 import { verifyCreds } from "@/lib/queries/auth/verifyCreds";
 import { verifyServer } from "@/lib/queries/auth/verifyServer";
 import { saveToken } from "@/lib/queries/token";
+import { guardarUsuarioPainel } from "@/lib/historicoInstancia";
 
 /** Endereço do Gestão que pode embutir o painel (sem curinga). */
 export const ORIGENS_GESTAO = ["https://omni-hr-hub-tqwf.vercel.app", "https://gestao.luminaresc.com.br"] as const;
@@ -38,8 +39,9 @@ async function trocarToken(token: string): Promise<boolean> {
       body: JSON.stringify({ acao: "trocar", token }),
     });
     if (!resposta.ok) return false;
-    const corpo = (await resposta.json()) as { ok?: boolean; chave?: string };
+    const corpo = (await resposta.json()) as { ok?: boolean; chave?: string; usuario?: string | null };
     if (!corpo.ok || !corpo.chave) return false;
+    guardarUsuarioPainel(corpo.usuario ?? null);
 
     // Mesmo caminho do login por chave: confere o servidor e a chave antes de gravar a sessão.
     const servidor = await verifyServer({ url });

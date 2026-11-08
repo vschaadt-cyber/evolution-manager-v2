@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - "Reiniciar" mostra o estado real: badge "Reiniciando…" no card, no bloco de conexão, na lista e nos contadores. Confere a conexão a cada 2 s; "Conectado" só com a troca de estado depois do clique (ou conexão recente após 8 s). Sem resposta em 60 s, com botão "Tentar de novo". O horário do clique fica em sessionStorage por instância. Só front; a regra é a mesma do Gestão (`faseReinicio`).
 
 ### Added
+- Histórico de reinício, desconexão e reconexão por instância, com horário e quem fez, em Diagnóstico (ao escolher a instância). Grava e lê pela edge `evolution-painel-acesso` (ações `registrar` e `eventos`), autorizada pela chave da própria instância.
 - Open source preparation with comprehensive documentation
 - GitHub issue templates and PR templates
 - Security policy and vulnerability reporting process

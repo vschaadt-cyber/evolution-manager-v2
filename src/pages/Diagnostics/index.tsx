@@ -1,4 +1,4 @@
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { AlertTriangle, CheckCircle2, ExternalLink, Info, Loader2, Wand2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 import { diagnoseInstance, DiagnosticLevel, DiagnosticRow, PERIOD_OPTIONS, PeriodValue, RECOMMENDED_WEBHOOK_EVENTS, withinPeriod } from "@/lib/diagnostics/rules";
+import { listarEventosInstancia } from "@/lib/historicoInstancia";
 import { fetchProxy } from "@/lib/queries/proxy/fetchProxy";
 import { fetchWebhook } from "@/lib/queries/webhook/fetchWebhook";
 import { useManageWebhook } from "@/lib/queries/webhook/manageWebhook";
@@ -48,6 +49,42 @@ function formatDate(value?: string | null) {
 }
 
 type Entry = DiagnosticRow & { instance: Instance; webhookIndex: number };
+
+const TIPO_EVENTO_LABEL: Record<string, string> = { reinicio: "Reinício", desconexao: "Desconexão", conexao: "Reconexão" };
+
+/** Últimos reinícios, desconexões e reconexões da instância, com horário e quem fez (sem chave). */
+function HistoricoEventos({ instance }: { instance: Instance }) {
+  const query = useQuery({
+    queryKey: ["diagnostics", "eventos", instance.id, instance.token],
+    queryFn: () => listarEventosInstancia({ instanciaId: instance.id, chaveInstancia: instance.token }),
+    retry: false,
+  });
+
+  return (
+    <Card className="space-y-3 p-4">
+      <div>
+        <p className="font-semibold">Histórico de reinício e conexão · {instance.name}</p>
+        <p className="text-xs text-muted-foreground">Registrado pelo Manager a partir desta versão. Eventos anteriores não aparecem aqui.</p>
+      </div>
+      {query.isLoading && <p className="text-sm text-muted-foreground">Carregando histórico…</p>}
+      {query.isError && <p className="text-sm text-destructive">Não foi possível ler o histórico agora.</p>}
+      {query.data && query.data.length === 0 && <p className="text-sm text-muted-foreground">Nenhum reinício, desconexão ou reconexão registrado ainda.</p>}
+      {query.data && query.data.length > 0 && (
+        <ul className="divide-y text-sm">
+          {query.data.map((evento) => (
+            <li key={evento.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+              <span>
+                <span className="font-medium">{TIPO_EVENTO_LABEL[evento.tipo] ?? evento.tipo}</span>
+                <span className="text-muted-foreground"> · {formatDate(evento.criado_em)}</span>
+              </span>
+              <span className="text-xs text-muted-foreground">{evento.usuario ?? "usuário não identificado"}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  );
+}
 
 function DiagnosticsPage() {
   const { data: instances, isLoading, isError } = useFetchInstances();
@@ -239,6 +276,8 @@ function DiagnosticsPage() {
           })}
         </div>
       )}
+
+      {instanceFilter !== "all" && list.find((item) => item.name === instanceFilter) && <HistoricoEventos instance={list.find((item) => item.name === instanceFilter)!} />}
     </div>
   );
 }
