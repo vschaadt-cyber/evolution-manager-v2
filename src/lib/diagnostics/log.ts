@@ -34,6 +34,8 @@ export interface EventoLog {
   valor_s?: number | null;
   n?: number | null;
   fim?: string | null;
+  /** Código do motivo da queda (statusReason do Baileys), quando a Evolution informou. */
+  codigo?: number | null;
   /** Só no evento "servidor_reiniciou": nomes dos números que voltaram juntos. */
   numeros?: string[];
 }
@@ -154,23 +156,43 @@ function hora(iso?: string | null): string {
 
 const TIPO_MIDIA: Record<string, string> = { imagem: "imagem", audio: "áudio", video: "vídeo", documento: "documento", sticker: "figurinha" };
 
+// Códigos do Baileys (DisconnectReason) que a Evolution manda no statusReason da queda.
+export const MOTIVOS_QUEDA: Record<number, { motivo: string; oQueFazer: string }> = {
+  401: { motivo: "sessão encerrada no celular (aparelho desconectado)", oQueFazer: "Gere um novo QR Code e leia com o celular." },
+  403: { motivo: "número bloqueado pelo WhatsApp", oQueFazer: "Confira o número no celular antes de reconectar." },
+  408: { motivo: "conexão perdida ou tempo esgotado (rede)", oQueFazer: "Costuma voltar sozinha. Se repetir muito, veja a internet do servidor." },
+  411: { motivo: "celular sem suporte a vários aparelhos", oQueFazer: "Atualize o WhatsApp do celular e gere um novo QR Code." },
+  428: { motivo: "conexão fechada pelo WhatsApp", oQueFazer: "Costuma voltar sozinha. Se repetir a cada hora, é sinal de fila travada." },
+  440: { motivo: "outro WhatsApp Web assumiu a sessão", oQueFazer: "Feche a outra sessão em Aparelhos conectados, no celular." },
+  500: { motivo: "erro de sessão ou erro enviado pelo WhatsApp (stream error)", oQueFazer: "Se repetir, reinicie o número. Se não voltar, gere um novo QR Code." },
+  503: { motivo: "WhatsApp fora do ar", oQueFazer: "Aguarde. Volta sozinha quando o WhatsApp normalizar." },
+  515: { motivo: "o WhatsApp pediu para reiniciar a conexão", oQueFazer: "Normal logo depois de ler o QR Code. Volta sozinha." },
+};
+
+/** "Motivo: … (código 428). O que fazer." Sem código: diz que a Evolution não informou. */
+export function motivoDaQueda(codigo: number | null | undefined): string {
+  if (codigo == null) return "Motivo não informado pela Evolution.";
+  const conhecido = MOTIVOS_QUEDA[codigo];
+  return conhecido ? `Motivo: ${conhecido.motivo} (código ${codigo}). ${conhecido.oQueFazer}` : `Motivo: código ${codigo}, sem tradução ainda.`;
+}
+
 /** Título e detalhe, em português simples, de uma linha do log. */
 export function descreverEvento(ev: EventoLog): { titulo: string; detalhe: string } {
   const quem = ev.usuario?.trim() || "usuário não identificado";
   switch (ev.tipo) {
     case "reconexao":
-      return { titulo: `Conexão caiu e voltou em ${formatarDuracao(ev.valor_s)}`, detalhe: "Queda rápida: o WhatsApp derrubou a conexão e a Evolution reconectou sozinha." };
+      return { titulo: `Conexão caiu e voltou em ${formatarDuracao(ev.valor_s)}`, detalhe: motivoDaQueda(ev.codigo) };
     case "conectou":
       return { titulo: "Conectou", detalhe: "O número ficou conectado ao WhatsApp." };
     case "reconectando":
       return ev.fim
-        ? { titulo: `Ficou ${formatarDuracao(ev.valor_s)} tentando reconectar`, detalhe: "Nesse tempo o número não enviou nem recebeu." }
-        : { titulo: `Tentando reconectar há ${formatarDuracao(ev.valor_s)}`, detalhe: "Ainda não voltou. Se continuar, reinicie o número ou gere um novo QR Code." };
+        ? { titulo: `Ficou ${formatarDuracao(ev.valor_s)} tentando reconectar`, detalhe: `Voltou às ${hora(ev.fim)}. Nesse tempo o número não enviou nem recebeu. ${motivoDaQueda(ev.codigo)}` }
+        : { titulo: `Tentando reconectar há ${formatarDuracao(ev.valor_s)}`, detalhe: `Ainda não voltou. ${motivoDaQueda(ev.codigo)}` };
     case "queda": {
       const titulo = ev.estado === "refused" ? "Conexão recusada pelo WhatsApp" : "Conexão caiu";
       return ev.fim
-        ? { titulo, detalhe: `Ficou fora por ${formatarDuracao(ev.valor_s)}.` }
-        : { titulo, detalhe: `Fora do ar há ${formatarDuracao(ev.valor_s)}. Reinicie o número ou gere um novo QR Code.` };
+        ? { titulo: `${titulo} e ficou fora por ${formatarDuracao(ev.valor_s)}`, detalhe: `Voltou às ${hora(ev.fim)}. ${motivoDaQueda(ev.codigo)}` }
+        : { titulo: `${titulo}: fora do ar há ${formatarDuracao(ev.valor_s)}`, detalhe: `Ainda não voltou. ${motivoDaQueda(ev.codigo)}` };
     }
     case "reinicio":
       if (ev.origem === "vigia") {

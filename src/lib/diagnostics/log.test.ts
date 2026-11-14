@@ -2,7 +2,19 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { agruparPorDia, descreverEvento, EventoLog, filtrarEventos, formatarDuracao, haQuanto, juntarReinicioDoServidor, quedasDemais, situacaoDaMensagem, situacaoDoNumero } from "./log";
+import {
+  agruparPorDia,
+  descreverEvento,
+  EventoLog,
+  filtrarEventos,
+  formatarDuracao,
+  haQuanto,
+  juntarReinicioDoServidor,
+  motivoDaQueda,
+  quedasDemais,
+  situacaoDaMensagem,
+  situacaoDoNumero,
+} from "./log";
 
 const ev = (p: Partial<EventoLog>): EventoLog => ({ em: "2026-11-14T14:00:00Z", instancia_id: "a", tipo: "reconexao", nivel: "aviso", ...p });
 
@@ -36,9 +48,20 @@ test("reinício do vigia mostra o motivo; reinício manual mostra quem fez", () 
 });
 
 test("queda aberta e queda encerrada", () => {
-  assert.match(descreverEvento(ev({ tipo: "queda", estado: "close", valor_s: 600 })).detalhe, /Fora do ar há 10 min/);
-  assert.match(descreverEvento(ev({ tipo: "queda", estado: "close", valor_s: 600, fim: "2026-11-14T14:10:00Z" })).detalhe, /Ficou fora por 10 min/);
-  assert.equal(descreverEvento(ev({ tipo: "queda", estado: "refused" })).titulo, "Conexão recusada pelo WhatsApp");
+  assert.equal(descreverEvento(ev({ tipo: "queda", estado: "close", valor_s: 600 })).titulo, "Conexão caiu: fora do ar há 10 min");
+  const encerrada = descreverEvento(ev({ tipo: "queda", estado: "close", valor_s: 600, fim: "2026-11-14T14:10:00Z" }));
+  assert.equal(encerrada.titulo, "Conexão caiu e ficou fora por 10 min");
+  assert.match(encerrada.detalhe, /^Voltou às /);
+  assert.match(descreverEvento(ev({ tipo: "queda", estado: "refused", valor_s: 60 })).titulo, /^Conexão recusada pelo WhatsApp/);
+});
+
+test("motivo da queda: código conhecido, desconhecido e ausente", () => {
+  assert.match(motivoDaQueda(428), /conexão fechada pelo WhatsApp \(código 428\)/);
+  assert.match(motivoDaQueda(401), /novo QR Code/);
+  assert.equal(motivoDaQueda(999), "Motivo: código 999, sem tradução ainda.");
+  assert.equal(motivoDaQueda(null), "Motivo não informado pela Evolution.");
+  assert.match(descreverEvento(ev({ tipo: "reconexao", valor_s: 2, codigo: 440 })).detalhe, /outro WhatsApp Web assumiu a sessão/);
+  assert.match(descreverEvento(ev({ tipo: "queda", estado: "close", valor_s: 600, codigo: 401 })).detalhe, /sessão encerrada no celular/);
 });
 
 test("lote atrasado conta mensagens e o maior atraso", () => {
