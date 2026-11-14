@@ -1,283 +1,343 @@
-import { useQueries, useQuery } from "@tanstack/react-query";
-import { AlertTriangle, CheckCircle2, ExternalLink, Info, Loader2, Wand2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { AlertTriangle, ArrowDownLeft, ArrowUpRight, CheckCircle2, Info, Loader2, RefreshCw, XCircle } from "lucide-react";
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { toast } from "react-toastify";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
-import { diagnoseInstance, DiagnosticLevel, DiagnosticRow, PERIOD_OPTIONS, PeriodValue, RECOMMENDED_WEBHOOK_EVENTS, withinPeriod } from "@/lib/diagnostics/rules";
-import { listarEventosInstancia } from "@/lib/historicoInstancia";
-import { fetchProxy } from "@/lib/queries/proxy/fetchProxy";
-import { fetchWebhook } from "@/lib/queries/webhook/fetchWebhook";
-import { useManageWebhook } from "@/lib/queries/webhook/manageWebhook";
-import { useFetchInstances } from "@/lib/queries/instance/fetchInstances";
+import {
+  agruparPorDia,
+  buscarLog,
+  descreverEvento,
+  EventoLog,
+  FILTROS_LOG,
+  filtrarEventos,
+  FiltroLog,
+  haQuanto,
+  juntarReinicioDoServidor,
+  LogNaoAutorizado,
+  MensagemLog,
+  ModoMensagens,
+  NivelLog,
+  NumeroLog,
+  PERIODOS_LOG,
+  quedasDemais,
+  situacaoDaMensagem,
+  situacaoDoNumero,
+} from "@/lib/diagnostics/log";
+import { getToken, TOKEN_ID } from "@/lib/queries/token";
+import { cn } from "@/lib/utils";
+import { formatBrazilPhone } from "@/utils/phone";
 
-import { Instance } from "@/types/evolution.types";
+import { ConfiguracaoInstancias } from "./Configuracao";
 
-type LevelFilter = "all" | DiagnosticLevel;
+const NIVEL_BADGE: Record<NivelLog, "destructive" | "warning" | "success" | "secondary"> = { erro: "destructive", aviso: "warning", ok: "success", info: "secondary" };
 
-const LEVEL_LABEL: Record<DiagnosticLevel, string> = { error: "Erro", warn: "Aviso", ok: "OK", info: "Info" };
+const NIVEL_ICONE: Record<NivelLog, typeof Info> = { erro: XCircle, aviso: AlertTriangle, ok: CheckCircle2, info: Info };
 
-const LEVEL_BADGE: Record<DiagnosticLevel, { variant: "destructive" | "warning" | "success" | "secondary"; icon: typeof Info }> = {
-  error: { variant: "destructive", icon: AlertTriangle },
-  warn: { variant: "warning", icon: AlertTriangle },
-  ok: { variant: "success", icon: CheckCircle2 },
-  info: { variant: "secondary", icon: Info },
+const NIVEL_COR: Record<NivelLog, string> = {
+  erro: "text-red-600 dark:text-red-400",
+  aviso: "text-amber-600 dark:text-amber-400",
+  ok: "text-emerald-600 dark:text-emerald-400",
+  info: "text-muted-foreground",
 };
 
-const CHECK_LABEL: Record<DiagnosticRow["check"], string> = {
-  conexao: "Conexão",
-  webhook: "Webhook",
-  proxy: "Proxy",
-  "ultimo-evento": "Último evento",
+const TIPO_MENSAGEM: Record<string, string> = {
+  texto: "Texto",
+  imagem: "Imagem",
+  audio: "Áudio",
+  video: "Vídeo",
+  documento: "Documento",
+  sticker: "Figurinha",
+  contato: "Contato",
+  localizacao: "Localização",
+  outro: "Outro",
 };
 
-function errorMessage(error: unknown): string {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const message = (error as any)?.response?.data?.response?.message ?? (error as any)?.response?.data?.message ?? (error as any)?.message;
-  if (Array.isArray(message)) return message.join(" ");
-  return typeof message === "string" && message ? message : "Erro desconhecido.";
+function horaCompleta(iso: string) {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? "—" : d.toLocaleTimeString("pt-BR");
 }
 
-function formatDate(value?: string | null) {
-  if (!value) return "—";
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString("pt-BR");
-}
-
-type Entry = DiagnosticRow & { instance: Instance; webhookIndex: number };
-
-const TIPO_EVENTO_LABEL: Record<string, string> = { reinicio: "Reinício", desconexao: "Desconexão", conexao: "Reconexão" };
-
-/** Últimos reinícios, desconexões e reconexões da instância, com horário e quem fez (sem chave). */
-function HistoricoEventos({ instance }: { instance: Instance }) {
-  const query = useQuery({
-    queryKey: ["diagnostics", "eventos", instance.id, instance.token],
-    queryFn: () => listarEventosInstancia({ instanciaId: instance.id, chaveInstancia: instance.token }),
-    retry: false,
-  });
-
+function Contador({ rotulo, valor, alerta }: { rotulo: string; valor: number; alerta?: boolean }) {
   return (
-    <Card className="space-y-3 p-4">
-      <div>
-        <p className="font-semibold">Histórico de reinício e conexão · {instance.name}</p>
-        <p className="text-xs text-muted-foreground">Registrado pelo Manager a partir desta versão. Eventos anteriores não aparecem aqui.</p>
-      </div>
-      {query.isLoading && <p className="text-sm text-muted-foreground">Carregando histórico…</p>}
-      {query.isError && <p className="text-sm text-destructive">Não foi possível ler o histórico agora.</p>}
-      {query.data && query.data.length === 0 && <p className="text-sm text-muted-foreground">Nenhum reinício, desconexão ou reconexão registrado ainda.</p>}
-      {query.data && query.data.length > 0 && (
-        <ul className="divide-y text-sm">
-          {query.data.map((evento) => (
-            <li key={evento.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
-              <span>
-                <span className="font-medium">{TIPO_EVENTO_LABEL[evento.tipo] ?? evento.tipo}</span>
-                <span className="text-muted-foreground"> · {formatDate(evento.criado_em)}</span>
-              </span>
-              <span className="text-xs text-muted-foreground">{evento.usuario ?? "usuário não identificado"}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </Card>
+    <div className="min-w-0">
+      <p className={cn("text-base font-semibold tabular-nums", alerta && valor > 0 && "text-red-600 dark:text-red-400")}>{valor}</p>
+      <p className="truncate text-[11px] text-muted-foreground">{rotulo}</p>
+    </div>
   );
 }
+
+function CartaoNumero({ numero, horas, selecionado, onClick }: { numero: NumeroLog; horas: number; selecionado: boolean; onClick: () => void }) {
+  const situacao = situacaoDoNumero(numero);
+  return (
+    <button type="button" onClick={onClick} className="text-left" title={selecionado ? "Clique para ver todos os números" : "Clique para ver só este número"}>
+      <Card className={cn("h-full space-y-3 p-4 transition-colors hover:border-primary/60", selecionado && "border-primary ring-1 ring-primary")}>
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="truncate font-semibold">{numero.exibicao}</p>
+            <p className="truncate text-xs text-muted-foreground">{formatBrazilPhone(numero.numero) ?? numero.nome}</p>
+          </div>
+          <Badge variant={NIVEL_BADGE[situacao.nivel]} className="shrink-0">
+            {situacao.rotulo}
+          </Badge>
+        </div>
+        <p className="text-xs text-muted-foreground">{situacao.explicacao}</p>
+        <div className="space-y-0.5 text-xs">
+          <p>
+            <span className="text-muted-foreground">Última recebida:</span> {haQuanto(numero.ultima_recebida_em)}
+          </p>
+          <p>
+            <span className="text-muted-foreground">Última enviada:</span> {haQuanto(numero.ultima_enviada_em)}
+          </p>
+        </div>
+        <div className="grid grid-cols-3 gap-2 border-t pt-3">
+          <Contador rotulo="Quedas" valor={numero.quedas} alerta={quedasDemais(numero.quedas, horas)} />
+          <Contador rotulo="Reinícios" valor={numero.reinicios} />
+          <Contador rotulo="Msgs atrasadas" valor={numero.atrasadas} alerta />
+          <Contador rotulo="Recebidas" valor={numero.recebidas} />
+          <Contador rotulo="Enviadas" valor={numero.enviadas} />
+          <Contador rotulo="Falhas envio/mídia" valor={numero.falhas_envio + numero.midias_erro} alerta />
+        </div>
+      </Card>
+    </button>
+  );
+}
+
+function LinhaEvento({ evento, nomeNumero }: { evento: EventoLog; nomeNumero: string }) {
+  const { titulo, detalhe } = descreverEvento(evento);
+  const Icone = NIVEL_ICONE[evento.nivel] ?? Info;
+  return (
+    <li className="grid grid-cols-[4.5rem_1.25rem_minmax(0,1fr)] items-start gap-2 px-4 py-2.5 text-sm">
+      <span className="pt-0.5 text-xs tabular-nums text-muted-foreground">{horaCompleta(evento.em)}</span>
+      <Icone size={16} className={cn("mt-0.5", NIVEL_COR[evento.nivel])} />
+      <div className="min-w-0">
+        <p>
+          <span className="font-medium">{titulo}</span>
+          {nomeNumero && <span className="text-muted-foreground"> · {nomeNumero}</span>}
+        </p>
+        {detalhe && <p className="break-words text-xs text-muted-foreground">{detalhe}</p>}
+      </div>
+    </li>
+  );
+}
+
+function TabelaMensagens({ mensagens, nomes, limite }: { mensagens: MensagemLog[]; nomes: Record<string, string>; limite: number }) {
+  if (mensagens.length === 0) return <p className="px-4 py-8 text-center text-sm text-muted-foreground">Nenhuma mensagem com esses filtros.</p>;
+  return (
+    <>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="border-b text-left text-xs text-muted-foreground">
+            <tr>
+              <th className="px-4 py-2 font-medium">Chegou no Gestão</th>
+              <th className="px-2 py-2 font-medium">Número</th>
+              <th className="px-2 py-2 font-medium">Direção</th>
+              <th className="px-2 py-2 font-medium">Contato</th>
+              <th className="px-2 py-2 font-medium">Mensagem</th>
+              <th className="px-4 py-2 font-medium">Situação</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y">
+            {mensagens.map((m, i) => {
+              const situacao = situacaoDaMensagem(m);
+              const d = new Date(m.em);
+              return (
+                <tr key={`${m.em}-${i}`} className="align-top">
+                  <td className="whitespace-nowrap px-4 py-2 text-xs tabular-nums text-muted-foreground">
+                    {d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })} {d.toLocaleTimeString("pt-BR")}
+                  </td>
+                  <td className="whitespace-nowrap px-2 py-2 text-xs">{nomes[m.instancia_id] ?? "—"}</td>
+                  <td className="whitespace-nowrap px-2 py-2 text-xs">
+                    <span className="inline-flex items-center gap-1">
+                      {m.from_me ? <ArrowUpRight size={13} className="text-sky-600" /> : <ArrowDownLeft size={13} className="text-emerald-600" />}
+                      {m.from_me ? "Enviada" : "Recebida"}
+                    </span>
+                  </td>
+                  <td className="max-w-[14rem] truncate px-2 py-2 text-xs" title={m.contato ?? ""}>
+                    {m.contato ?? "—"}
+                    {m.grupo && <span className="text-muted-foreground"> (grupo)</span>}
+                  </td>
+                  <td className="max-w-[22rem] truncate px-2 py-2 text-xs" title={m.previa ?? ""}>
+                    <span className="text-muted-foreground">{TIPO_MENSAGEM[m.tipo ?? ""] ?? m.tipo ?? "—"}</span>
+                    {m.previa ? ` · ${m.previa}` : ""}
+                  </td>
+                  <td className="px-4 py-2 text-xs">
+                    <span className={cn(situacao.nivel !== "ok" && "font-medium", NIVEL_COR[situacao.nivel])}>{situacao.rotulo}</span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {mensagens.length >= limite && <p className="border-t px-4 py-2 text-xs text-muted-foreground">Mostrando as {limite} mais recentes. Escolha um número ou um período menor para ver as demais.</p>}
+    </>
+  );
+}
+
+const LIMITE = 500;
 
 function DiagnosticsPage() {
-  const { data: instances, isLoading, isError } = useFetchInstances();
-  const { createWebhook } = useManageWebhook();
+  const chave = getToken(TOKEN_ID.TOKEN) ?? "";
+  const [horas, setHoras] = useState<number>(24);
+  const [instanciaId, setInstanciaId] = useState<string | null>(null);
+  const [filtro, setFiltro] = useState<FiltroLog>("problemas");
+  const [modoMensagens, setModoMensagens] = useState<ModoMensagens>("nenhuma");
 
-  const [instanceFilter, setInstanceFilter] = useState<string>("all");
-  const [levelFilter, setLevelFilter] = useState<LevelFilter>("all");
-  const [periodFilter, setPeriodFilter] = useState<PeriodValue>("all");
-  const [busyName, setBusyName] = useState<string | null>(null);
-
-  const list = useMemo(() => (Array.isArray(instances) ? [...instances].sort((a, b) => a.name.localeCompare(b.name)) : []), [instances]);
-
-  // Webhook e proxy de cada instância, lidos com o token da própria instância.
-  const webhookQueries = useQueries({
-    queries: list.map((item) => ({
-      queryKey: ["diagnostics", "webhook", item.name, item.token],
-      queryFn: () => fetchWebhook({ instanceName: item.name, token: item.token }),
-      retry: false,
-    })),
+  const log = useQuery({
+    queryKey: ["diagnostics", "log", horas, instanciaId, modoMensagens],
+    queryFn: () => buscarLog({ chave, instanciaId, horas, limite: LIMITE, mensagens: modoMensagens }),
+    enabled: chave.length > 0,
+    refetchInterval: 60_000,
+    placeholderData: (anterior) => anterior,
+    retry: (tentativas, erro) => !(erro instanceof LogNaoAutorizado) && tentativas < 2,
   });
 
-  const proxyQueries = useQueries({
-    queries: list.map((item) => ({
-      queryKey: ["diagnostics", "proxy", item.name, item.token],
-      queryFn: () => fetchProxy({ instanceName: item.name, token: item.token }),
-      retry: false,
-    })),
-  });
+  const numeros = useMemo(() => log.data?.instancias ?? [], [log.data]);
+  const nomes = useMemo(() => Object.fromEntries(numeros.map((n) => [n.id, n.exibicao])), [numeros]);
 
-  const entries = useMemo<Entry[]>(() => {
-    const all: Entry[] = [];
-    list.forEach((instance, index) => {
-      const webhookQuery = webhookQueries[index];
-      const rows = diagnoseInstance({
-        instance,
-        webhook: webhookQuery?.data,
-        webhookReadFailed: webhookQuery?.isError,
-        proxy: proxyQueries[index]?.data,
-      });
-      rows.forEach((row) => all.push({ ...row, instance, webhookIndex: index }));
-    });
-    return all;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [list, webhookQueries.map((q) => q.dataUpdatedAt).join(), webhookQueries.map((q) => q.isError).join(), proxyQueries.map((q) => q.dataUpdatedAt).join()]);
+  const eventos = useMemo(() => {
+    const juntos = juntarReinicioDoServidor(log.data?.eventos ?? [], nomes);
+    return filtrarEventos(juntos, filtro, instanciaId);
+  }, [log.data, nomes, filtro, instanciaId]);
 
-  const filtered = useMemo(
-    () => entries.filter((row) => (instanceFilter === "all" || row.instance.name === instanceFilter) && (levelFilter === "all" || row.level === levelFilter) && withinPeriod(row, periodFilter)),
-    [entries, instanceFilter, levelFilter, periodFilter],
-  );
-
-  const summary = useMemo(() => {
-    const errors = entries.filter((row) => row.level === "error").length;
-    const warnings = entries.filter((row) => row.level === "warn").length;
-    return { errors, warnings };
-  }, [entries]);
-
-  const enableWebhook = async (entry: Entry) => {
-    const webhook = webhookQueries[entry.webhookIndex]?.data;
-    if (!webhook?.url) return;
-    setBusyName(entry.instance.name);
-    try {
-      await createWebhook({
-        instanceName: entry.instance.name,
-        token: entry.instance.token,
-        data: {
-          enabled: true,
-          url: webhook.url,
-          events: RECOMMENDED_WEBHOOK_EVENTS,
-          base64: !!webhook.webhookBase64,
-          byEvents: !!webhook.webhookByEvents,
-        },
-      });
-      toast.success(`Webhook de ${entry.instance.name} ligado com os eventos recomendados.`);
-      await webhookQueries[entry.webhookIndex]?.refetch();
-    } catch (error) {
-      toast.error(`Não foi possível ligar o webhook: ${errorMessage(error)}`);
-    } finally {
-      setBusyName(null);
-    }
-  };
-
-  const loading = isLoading || webhookQueries.some((q) => q.isLoading);
+  const dias = useMemo(() => agruparPorDia(eventos), [eventos]);
+  const comProblema = numeros.filter((n) => situacaoDoNumero(n).nivel !== "ok").length;
+  const semAcesso = log.error instanceof LogNaoAutorizado;
+  const cortado = (log.data?.eventos.length ?? 0) >= LIMITE;
 
   return (
     <div className="space-y-6">
+      {/* Resumo e controles */}
       <div className="flex flex-wrap items-center gap-3 text-sm">
-        <Badge variant="destructive">{summary.errors} erro(s)</Badge>
-        <Badge variant="warning">{summary.warnings} aviso(s)</Badge>
-        <span className="text-muted-foreground">Verificado a cada carregamento desta página.</span>
+        {log.data && (comProblema > 0 ? <Badge variant="destructive">{comProblema} número(s) com problema agora</Badge> : <Badge variant="success">Todos os números funcionando agora</Badge>)}
+        {log.data?.reinicio_automatico != null && <Badge variant="secondary">Reinício automático {log.data.reinicio_automatico ? "ligado" : "desligado"}</Badge>}
+        <span className="text-xs text-muted-foreground">
+          {log.dataUpdatedAt ? `Atualizado às ${new Date(log.dataUpdatedAt).toLocaleTimeString("pt-BR")} · atualiza sozinho a cada 1 min` : "Carregando…"}
+        </span>
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          <select className="h-9 rounded-md border bg-background px-2 text-sm" value={horas} onChange={(e) => setHoras(Number(e.target.value))} aria-label="Período">
+            {PERIODOS_LOG.map((p) => (
+              <option key={p.horas} value={p.horas}>
+                {p.rotulo}
+              </option>
+            ))}
+          </select>
+          <select className="h-9 rounded-md border bg-background px-2 text-sm" value={instanciaId ?? ""} onChange={(e) => setInstanciaId(e.target.value || null)} aria-label="Número">
+            <option value="">Todos os números</option>
+            {numeros.map((n) => (
+              <option key={n.id} value={n.id}>
+                {n.exibicao}
+              </option>
+            ))}
+          </select>
+          <Button size="sm" variant="outline" onClick={() => log.refetch()} disabled={log.isFetching}>
+            {log.isFetching ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+            Atualizar
+          </Button>
+        </div>
       </div>
 
-      <Card className="grid gap-3 p-3 sm:grid-cols-3">
-        <label className="space-y-1 text-xs text-muted-foreground">
-          Instância
-          <select className="h-9 w-full rounded-md border bg-background px-2 text-sm text-foreground" value={instanceFilter} onChange={(e) => setInstanceFilter(e.target.value)}>
-            <option value="all">Todas</option>
-            {list.map((item) => (
-              <option key={item.id} value={item.name}>
-                {item.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="space-y-1 text-xs text-muted-foreground">
-          Nível
-          <select className="h-9 w-full rounded-md border bg-background px-2 text-sm text-foreground" value={levelFilter} onChange={(e) => setLevelFilter(e.target.value as LevelFilter)}>
-            <option value="all">Todos</option>
-            <option value="error">Erro</option>
-            <option value="warn">Aviso</option>
-            <option value="ok">OK</option>
-            <option value="info">Informação</option>
-          </select>
-        </label>
-        <label className="space-y-1 text-xs text-muted-foreground">
-          Período
-          <select className="h-9 w-full rounded-md border bg-background px-2 text-sm text-foreground" value={periodFilter} onChange={(e) => setPeriodFilter(e.target.value as PeriodValue)}>
-            {PERIOD_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
-      </Card>
+      {semAcesso && (
+        <Card className="p-4 text-sm">
+          <p className="font-medium">O log não abriu com esta chave.</p>
+          <p className="text-muted-foreground">O log vem do Gestão e só abre com a chave global. Abra o painel pelo Gestão (Sistema › Integrações › WhatsApp) e volte a esta tela.</p>
+        </Card>
+      )}
+      {log.isError && !semAcesso && <p className="text-sm text-destructive">Não foi possível ler o log agora. Tente Atualizar.</p>}
 
-      <p className="text-xs text-muted-foreground">
-        A Evolution API não guarda histórico de eventos. Aqui aparecem só o estado atual e o último horário de desconexão registrado. O período filtra por esse horário.
-      </p>
-
-      {isError && <p className="py-8 text-center text-sm text-destructive">Não foi possível carregar as instâncias. Confira a conexão com a Evolution.</p>}
-
-      {!isError && !loading && list.length === 0 && <p className="py-12 text-center text-sm text-muted-foreground">Nenhuma instância cadastrada. Crie uma na lista de instâncias.</p>}
-
-      {loading && (
+      {log.isLoading && (
         <p className="flex items-center justify-center gap-2 py-12 text-sm text-muted-foreground">
-          <Loader2 size={16} className="animate-spin" /> Carregando diagnóstico…
+          <Loader2 size={16} className="animate-spin" /> Carregando o log…
         </p>
       )}
 
-      {!loading && list.length > 0 && filtered.length === 0 && <p className="py-12 text-center text-sm text-muted-foreground">Nenhum registro com esses filtros.</p>}
-
-      {!loading && filtered.length > 0 && (
-        <div className="grid gap-3">
-          {filtered.map((row, index) => {
-            const { variant, icon: Icon } = LEVEL_BADGE[row.level];
-            const webhookUrl = webhookQueries[row.webhookIndex]?.data?.url;
-            return (
-              <Card key={`${row.instance.id}-${row.check}-${index}`} className="grid gap-3 p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
-                <div className="min-w-0 space-y-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="truncate font-semibold">{row.instance.name}</span>
-                    <span className="text-xs text-muted-foreground">· {CHECK_LABEL[row.check]}</span>
-                    <Badge variant={variant} className="gap-1">
-                      <Icon size={12} />
-                      {LEVEL_LABEL[row.level]}
-                    </Badge>
-                  </div>
-                  <p className="text-sm font-medium">{row.title}</p>
-                  <p className="text-sm text-muted-foreground">{row.message}</p>
-                  {row.at !== undefined && row.check === "ultimo-evento" && <p className="text-xs text-muted-foreground">Horário: {formatDate(row.at)}</p>}
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 md:justify-end">
-                  {row.action === "enable-webhook" && webhookUrl && (
-                    <Button size="sm" onClick={() => enableWebhook(row)} disabled={busyName === row.instance.name}>
-                      {busyName === row.instance.name ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
-                      Ligar e marcar eventos recomendados
-                    </Button>
-                  )}
-                  {(row.action === "open-webhook" || (row.action === "enable-webhook" && !webhookUrl)) && (
-                    <Button size="sm" variant="outline" asChild>
-                      <Link to={`/manager/instance/${row.instance.id}/webhook`}>
-                        <ExternalLink size={14} />
-                        Informar URL do webhook
-                      </Link>
-                    </Button>
-                  )}
-                  {row.action === "open-instance" && (
-                    <Button size="sm" variant="outline" asChild>
-                      <Link to={`/manager/instance/${row.instance.id}/dashboard`}>
-                        <ExternalLink size={14} />
-                        Abrir instância
-                      </Link>
-                    </Button>
-                  )}
-                </div>
-              </Card>
-            );
-          })}
+      {/* Um cartão por número */}
+      {numeros.length > 0 && (
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {numeros.map((n) => (
+            <CartaoNumero key={n.id} numero={n} horas={horas} selecionado={instanciaId === n.id} onClick={() => setInstanciaId(instanciaId === n.id ? null : n.id)} />
+          ))}
         </div>
       )}
 
-      {instanceFilter !== "all" && list.find((item) => item.name === instanceFilter) && <HistoricoEventos instance={list.find((item) => item.name === instanceFilter)!} />}
+      {/* Linha do tempo */}
+      {log.data && (
+        <Card className="overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b p-4">
+            <div>
+              <p className="font-semibold">O que aconteceu{instanciaId ? ` · ${nomes[instanciaId] ?? ""}` : ""}</p>
+              <p className="text-xs text-muted-foreground">Do mais recente para o mais antigo, no horário do seu computador.</p>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {FILTROS_LOG.map((f) => (
+                <Button key={f.valor} size="sm" variant={filtro === f.valor ? "default" : "outline"} onClick={() => setFiltro(f.valor)}>
+                  {f.rotulo}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {eventos.length === 0 && (
+            <p className="flex items-center justify-center gap-2 px-4 py-10 text-sm text-muted-foreground">
+              <CheckCircle2 size={16} className="text-emerald-600" />
+              {filtro === "problemas" ? "Nenhum problema registrado neste período." : "Nada registrado neste período com esse filtro."}
+            </p>
+          )}
+
+          {dias.map((grupo) => (
+            <div key={grupo.dia}>
+              <p className="border-b bg-muted/40 px-4 py-1.5 text-xs font-medium capitalize text-muted-foreground">{grupo.dia}</p>
+              <ul className="divide-y">
+                {grupo.linhas.map((evento, i) => (
+                  <LinhaEvento key={`${evento.em}-${evento.tipo}-${i}`} evento={evento} nomeNumero={evento.instancia_id ? (nomes[evento.instancia_id] ?? "") : ""} />
+                ))}
+              </ul>
+            </div>
+          ))}
+
+          {cortado && <p className="border-t px-4 py-2 text-xs text-muted-foreground">Mostrando os {LIMITE} registros mais recentes. Escolha um número ou um período menor para ver os demais.</p>}
+        </Card>
+      )}
+
+      {/* Mensagens uma a uma */}
+      {log.data && (
+        <Card className="overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b p-4">
+            <div>
+              <p className="font-semibold">Mensagens{instanciaId ? ` · ${nomes[instanciaId] ?? ""}` : ""}</p>
+              <p className="text-xs text-muted-foreground">Cada mensagem com a hora em que entrou no Gestão, de quem é e se chegou atrasada ou com erro.</p>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {(
+                [
+                  ["nenhuma", "Ocultar"],
+                  ["problemas", "Só com problema"],
+                  ["todas", "Todas"],
+                ] as [ModoMensagens, string][]
+              ).map(([valor, rotulo]) => (
+                <Button key={valor} size="sm" variant={modoMensagens === valor ? "default" : "outline"} onClick={() => setModoMensagens(valor)}>
+                  {rotulo}
+                </Button>
+              ))}
+            </div>
+          </div>
+          {modoMensagens === "nenhuma" ? (
+            <p className="px-4 py-6 text-center text-sm text-muted-foreground">Escolha “Só com problema” para ver as que atrasaram ou falharam, ou “Todas” para o registro completo.</p>
+          ) : log.isFetching && log.data.mensagens.length === 0 ? (
+            <p className="flex items-center justify-center gap-2 px-4 py-8 text-sm text-muted-foreground">
+              <Loader2 size={16} className="animate-spin" /> Carregando mensagens…
+            </p>
+          ) : (
+            <TabelaMensagens mensagens={log.data.mensagens} nomes={nomes} limite={LIMITE} />
+          )}
+        </Card>
+      )}
+
+      {/* Configuração: webhook e proxy de cada instância (o diagnóstico que já existia) */}
+      <ConfiguracaoInstancias />
     </div>
   );
 }

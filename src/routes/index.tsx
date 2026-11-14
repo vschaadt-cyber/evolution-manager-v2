@@ -38,7 +38,7 @@ const router = createBrowserRouter([
     path: "/manager/diagnostico",
     element: (
       <ProtectedRoute>
-        <MainLayout title="Logs e Diagnóstico" subtitle="Estado das conexões, webhooks e proxies de todas as instâncias">
+        <MainLayout title="Logs e Diagnóstico" subtitle="O que aconteceu com cada número: quedas, reinícios, mensagens atrasadas e erros">
           <Diagnostics />
         </MainLayout>
       </ProtectedRoute>
