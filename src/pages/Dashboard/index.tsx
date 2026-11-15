@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { Instance } from "@/types/evolution.types";
 
 import { NewInstance } from "./NewInstance";
+import { ReiniciarTodas } from "./ReiniciarTodas";
 
 const fmt = (value: number) => new Intl.NumberFormat("pt-BR").format(value);
 const VIEW_KEY = "gestao-instances-view";
@@ -118,7 +119,7 @@ function Dashboard() {
   const list = useMemo(() => (Array.isArray(instances) ? instances : []), [instances]);
 
   // Reinícios em curso (feitos nesta aba): badge na lista e nos contadores; a lista é reconsultada a cada 2 s.
-  const { fases } = useReinicios(list, resetTable);
+  const { fases, iniciar, descartar } = useReinicios(list, resetTable);
   const reiniciando = Object.values(fases).filter((fase) => fase === "reiniciando" || fase === "iniciando").length;
 
   const stats = useMemo(() => {
@@ -202,6 +203,7 @@ function Dashboard() {
           <Button variant="outline" size="icon" onClick={resetTable} aria-label={t("dashboard.refresh")}>
             <RefreshCw size={18} className={cn(isFetching && "animate-spin")} />
           </Button>
+          <ReiniciarTodas instancias={list} fases={fases} iniciar={iniciar} descartar={descartar} recarregar={resetTable} />
           <NewInstance resetTable={resetTable} />
         </div>
       </Card>

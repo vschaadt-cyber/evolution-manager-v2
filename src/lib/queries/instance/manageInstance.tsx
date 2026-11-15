@@ -2,6 +2,7 @@ import { NewInstance, Settings } from "@/types/evolution.types";
 
 import { api, apiGlobal } from "../api";
 import { useManageMutation } from "../mutateQuery";
+import { getToken, TOKEN_ID } from "../token";
 
 const createInstance = async (instance: NewInstance) => {
   const response = await apiGlobal.post("/instance/create", instance);
@@ -16,6 +17,9 @@ const restart = async ({ instanceName, token }: TokenParams) => {
   const response = await api.post(`/instance/restart/${instanceName}`, undefined, { headers: { apikey: token } });
   return response.data;
 };
+
+/** Reinício sem passar pelo React Query (usado pela fila "Reiniciar todas"). Sem chave da instância, usa a chave global. */
+export const reiniciarInstancia = ({ instanceName, token }: { instanceName: string; token?: string | null }) => restart({ instanceName, token: token || getToken(TOKEN_ID.TOKEN) || "" });
 
 const logout = async ({ instanceName, token }: TokenParams) => {
   const response = await api.delete(`/instance/logout/${instanceName}`, { headers: { apikey: token } });

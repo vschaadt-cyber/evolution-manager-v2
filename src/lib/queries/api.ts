@@ -13,7 +13,9 @@ api.interceptors.request.use(
       config.baseURL = apiUrl.toString();
     }
 
-    if (!config.headers.apiKey || config.headers.apiKey === "") {
+    // Só completa a chave se a chamada não trouxe uma (sem diferenciar apikey/apiKey). Antes, a chave de outra
+    // instância guardada no navegador sobrescrevia a passada pela chamada, o que quebraria ações em várias instâncias.
+    if (!config.headers.get("apikey")) {
       const token = getToken(TOKEN_ID.INSTANCE_TOKEN);
       if (token) {
         config.headers.apikey = `${token}`;
@@ -38,7 +40,7 @@ apiGlobal.interceptors.request.use(
       config.baseURL = apiUrl.toString();
     }
 
-    if (!config.headers.apiKey || config.headers.apiKey === "") {
+    if (!config.headers.get("apikey")) {
       const token = getToken(TOKEN_ID.TOKEN);
       if (token) {
         config.headers.apikey = `${token}`;
