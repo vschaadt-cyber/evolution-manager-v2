@@ -1,6 +1,8 @@
 // Perfil do número no WhatsApp (nome, foto e recado). Endpoints da Evolution 2.3.7: /chat/fetchProfile,
 // /chat/updateProfileName, /chat/updateProfilePicture e /chat/updateProfileStatus.
 
+import { soDigitosDoNumero } from "@/lib/numero";
+
 import { api } from "../api";
 
 export interface PerfilInstancia {
@@ -9,9 +11,6 @@ export interface PerfilInstancia {
   /** Recado (“Info”) do WhatsApp. */
   status: string | null;
 }
-
-/** Só os dígitos de um número ou JID (ex.: 5547999999999@s.whatsapp.net → 5547999999999). */
-export const soDigitosDoNumero = (valor: string | null | undefined) => (valor ?? "").split("@")[0].replace(/\D/g, "");
 
 /** Lê o perfil do próprio número. Passa o número para a Evolution devolver o recado (sem número ela devolve o estado da conexão). */
 export async function buscarPerfil(instanceName: string, token: string, ownerJid: string): Promise<PerfilInstancia> {

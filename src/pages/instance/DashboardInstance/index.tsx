@@ -7,6 +7,7 @@ import QRCode from "react-qr-code";
 import { InstancePhone } from "@/components/instance-phone";
 import { InstanceStatus } from "@/components/instance-status";
 import { InstanceToken } from "@/components/instance-token";
+import { TesteEnvio } from "@/components/teste-envio";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -275,6 +276,8 @@ function DashboardInstance() {
           </CardContent>
         </Card>
       </div>
+
+      <TesteEnvio instance={instance} />
     </div>
   );
 }
