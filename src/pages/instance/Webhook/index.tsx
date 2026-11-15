@@ -217,9 +217,12 @@ function Webhook() {
                 </FormInput>
               </div>
               <Button type="button" variant="outline" className="gap-2" onClick={handleTest} disabled={testing || !url.trim()}>
-                <Send size={16} /> {testing ? "Enviando..." : "Testar webhook"}
+                <Send size={16} /> {testing ? "Enviando..." : "Enviar evento de teste"}
               </Button>
             </div>
+            <p className="!pt-0 text-xs text-muted-foreground">
+              O teste sai do seu navegador (evento WEBHOOK_TESTE) e só confirma que o envio saiu. A Evolution 2.3.7 não guarda nem informa o status HTTP da última entrega: para saber se chegou, olhe o destino (n8n, log).
+            </p>
 
             <FormSwitch name="byEvents" label={t("webhook.form.byEvents.label")} className="w-full justify-between" helper={t("webhook.form.byEvents.description")} />
             <FormSwitch name="base64" label={t("webhook.form.base64.label")} className="w-full justify-between" helper={t("webhook.form.base64.description")} />
