@@ -1,10 +1,9 @@
-import { Activity, BookOpen, LayoutDashboard, LogOut, Menu, Webhook } from "lucide-react";
+import { Activity, LayoutDashboard, LogOut, Menu } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { AppSidebar, NavSection } from "@/components/app-sidebar";
-import { LanguageToggle } from "@/components/language-toggle";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@/components/ui/dialog";
@@ -55,14 +54,6 @@ function MainLayout({ children, sections, title, subtitle, headerExtra }: Layout
           { id: "diagnostico", label: "Logs e Diagnóstico", icon: Activity, to: "/manager/diagnostico", badge: errorCount },
         ],
       },
-      {
-        id: "help",
-        label: t("nav.help"),
-        items: [
-          { id: "docs", label: t("nav.docs"), icon: BookOpen, href: "https://doc.evolution-api.com" },
-          { id: "postman", label: t("nav.postman"), icon: Webhook, href: "https://evolution-api.com/postman" },
-        ],
-      },
     ],
     [t, errorCount],
   );
@@ -101,7 +92,6 @@ function MainLayout({ children, sections, title, subtitle, headerExtra }: Layout
 
           <div className="flex items-center gap-2">
             {headerExtra}
-            <LanguageToggle />
             <ModeToggle />
             <Button variant="outline" className="gap-2" onClick={() => setLogoutConfirmation(true)} title={email ?? undefined}>
               <LogOut size={16} />

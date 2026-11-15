@@ -1,28 +1,17 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 
-import enUS from "./languages/en-US.json";
-import esES from "./languages/es-ES.json";
-import frFR from "./languages/fr-FR.json";
 import ptBR from "./languages/pt-BR.json";
 
+// O painel é só em português do Brasil: sem seletor de idioma e sem outras traduções.
 i18n.use(initReactI18next).init({
   resources: {
-    "en-US": {
-      translation: enUS,
-    },
     "pt-BR": {
       translation: ptBR,
     },
-    "es-ES": {
-      translation: esES,
-    },
-    "fr-FR": {
-      translation: frFR,
-    },
   },
-  lng: localStorage.getItem("i18nextLng") || "pt-BR",
-  fallbackLng: "en-US",
+  lng: "pt-BR",
+  fallbackLng: "pt-BR",
   interpolation: {
     escapeValue: false,
   },
