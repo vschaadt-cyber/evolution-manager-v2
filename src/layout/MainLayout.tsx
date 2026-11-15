@@ -9,10 +9,11 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@/components/ui/dialog";
 
+import { useAuth } from "@/contexts/AuthContext";
+
 import { ehEmbutido } from "@/lib/acessoGestao";
 import { countConnectionErrors } from "@/lib/diagnostics/rules";
 import { useFetchInstances } from "@/lib/queries/instance/fetchInstances";
-import { logout } from "@/lib/queries/token";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -27,6 +28,7 @@ const COLLAPSED_KEY = "gestao-sidebar-collapsed";
 function MainLayout({ children, sections, title, subtitle, headerExtra }: LayoutProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { sair, email } = useAuth();
 
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSED_KEY) === "1");
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -65,9 +67,11 @@ function MainLayout({ children, sections, title, subtitle, headerExtra }: Layout
     [t, errorCount],
   );
 
-  const handleLogout = () => {
-    logout();
-    navigate("/manager/login");
+  // Sair: encerra a sessão do Supabase e apaga a API key da memória.
+  const handleLogout = async () => {
+    setLogoutConfirmation(false);
+    await sair();
+    navigate("/manager/login", { replace: true });
   };
 
   // Embutido no Gestão: o Gestão já tem cabeçalho e menu, então aqui fica só o conteúdo.
@@ -99,8 +103,9 @@ function MainLayout({ children, sections, title, subtitle, headerExtra }: Layout
             {headerExtra}
             <LanguageToggle />
             <ModeToggle />
-            <Button variant="outline" size="icon" onClick={() => setLogoutConfirmation(true)} aria-label={t("header.logout.title")}>
-              <LogOut size={18} />
+            <Button variant="outline" className="gap-2" onClick={() => setLogoutConfirmation(true)} title={email ?? undefined}>
+              <LogOut size={16} />
+              Sair
             </Button>
           </div>
         </header>

@@ -1,107 +1,78 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 
 import { Footer } from "@/components/footer";
+import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormInput } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
-import { verifyCreds } from "@/lib/queries/auth/verifyCreds";
-import { verifyServer } from "@/lib/queries/auth/verifyServer";
-import { logout, saveToken } from "@/lib/queries/token";
-import { useTheme } from "@/components/theme-provider";
+import { useAuth } from "@/contexts/AuthContext";
 
 const loginSchema = z.object({
-  serverUrl: z.string({ required_error: "serverUrl is required" }).url("URL inválida"),
-  apiKey: z.string({ required_error: "ApiKey is required" }),
+  email: z.string().min(1, "Informe o e-mail").email("E-mail inválido"),
+  senha: z.string().min(1, "Informe a senha"),
 });
 type LoginSchema = z.infer<typeof loginSchema>;
 
+/** Login do painel: e-mail e senha do Gestão (Supabase Auth). Só master_admin entra. */
 function Login() {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const { theme } = useTheme();
+  const { entrar } = useAuth();
+  const [erro, setErro] = useState<string | null>(null);
+
   const loginForm = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
-      serverUrl: window.location.protocol + "//" + window.location.host,
-      apiKey: "",
-    },
+    defaultValues: { email: "", senha: "" },
   });
+  const enviando = loginForm.formState.isSubmitting;
 
   const handleLogin: SubmitHandler<LoginSchema> = async (data) => {
-    const server = await verifyServer({ url: data.serverUrl });
-
-    if (!server || !server.version) {
-      logout();
-      loginForm.setError("serverUrl", {
-        type: "manual",
-        message: t("login.message.invalidServer"),
-      });
+    setErro(null);
+    const mensagem = await entrar(data.email, data.senha);
+    if (mensagem) {
+      setErro(mensagem);
       return;
     }
-
-    const verify = await verifyCreds({
-      token: data.apiKey,
-      url: data.serverUrl,
-    });
-
-    if (!verify) {
-      loginForm.setError("apiKey", {
-        type: "manual",
-        message: t("login.message.invalidCredentials"),
-      });
-      return;
-    }
-
-    saveToken({
-      version: server.version,
-      clientName: server.clientName,
-      url: data.serverUrl,
-      token: data.apiKey,
-    });
-
-    navigate("/manager/");
+    navigate("/manager/", { replace: true });
   };
 
-  // Veio de um link do Gestão que expirou ou já foi usado (?motivo=link-expirado)
-  const linkExpirado = new URLSearchParams(window.location.search).get("motivo") === "link-expirado";
+  const escuro = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
 
   return (
     <div className="flex min-h-screen flex-col">
-      <div className="flex items-center justify-center pt-2">
-        <img className="h-10" src={theme === "dark" ? "/assets/images/gestao-logo-dark.png" : "/assets/images/gestao-logo.png"} alt="Gestão" />
-      </div>
       <div className="flex flex-1 items-center justify-center p-8">
-        <Card className="b-none w-[350px] shadow-none">
-          <CardHeader>
-            <CardTitle className="text-center">{t("login.title")}</CardTitle>
-            <CardDescription className="text-center">{t("login.description")}</CardDescription>
+        <Card className="w-[380px] max-w-full">
+          <CardHeader className="items-center gap-3">
+            <img className="h-10" src={escuro ? "/assets/images/gestao-logo-dark.png" : "/assets/images/gestao-logo.png"} alt="Gestão" />
+            <CardTitle className="text-center text-lg">Painel do WhatsApp</CardTitle>
+            <CardDescription className="text-center">Entre com o e-mail e a senha do Gestão</CardDescription>
           </CardHeader>
           <Form {...loginForm}>
-            <form onSubmit={loginForm.handleSubmit(handleLogin)}>
+            <form onSubmit={loginForm.handleSubmit(handleLogin)} noValidate>
               <CardContent>
-                {linkExpirado && (
-                  <p role="alert" className="mb-4 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
-                    Link expirado, reabra pelo Gestão
+                {erro && (
+                  <p role="alert" className="mb-4 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                    {erro}
                   </p>
                 )}
                 <div className="grid w-full items-center gap-4">
-                  <FormInput required name="serverUrl" label={t("login.form.serverUrl")}>
-                    <Input />
+                  <FormInput required name="email" label="E-mail">
+                    <Input type="email" autoComplete="username" autoFocus />
                   </FormInput>
-                  <FormInput required name="apiKey" label={t("login.form.apiKey")}>
-                    <Input type="password" />
+                  <FormInput required name="senha" label="Senha">
+                    <Input type="password" autoComplete="current-password" />
                   </FormInput>
                 </div>
               </CardContent>
               <CardFooter className="flex justify-center">
-                <Button className="w-full" type="submit">
-                  {t("login.button.login")}
+                <Button className="w-full" type="submit" disabled={enviando}>
+                  {enviando ? "Entrando…" : "Entrar"}
                 </Button>
               </CardFooter>
             </form>

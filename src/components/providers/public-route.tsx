@@ -1,20 +1,27 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 
-import { getToken, TOKEN_ID } from "@/lib/queries/token";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+
+import { useAuth } from "@/contexts/AuthContext";
 
 type PublicRouteProps = {
   children: React.ReactNode;
 };
 
+/** Tela de login: quem já está logado (sessão salva) entra direto no painel. */
 const PublicRoute = ({ children }: PublicRouteProps) => {
-  const apiUrl = getToken(TOKEN_ID.API_URL);
-  const token = getToken(TOKEN_ID.TOKEN);
-  const version = getToken(TOKEN_ID.VERSION);
+  const { estado } = useAuth();
 
-  if (apiUrl && token && version) {
-    return <Navigate to="/" />;
+  if (estado === "carregando") {
+    return (
+      <div className="flex min-h-screen items-center justify-center" role="status" aria-label="Carregando">
+        <LoadingSpinner />
+      </div>
+    );
   }
+
+  if (estado === "pronto" || estado === "erro") return <Navigate to="/manager/" replace />;
 
   return children;
 };

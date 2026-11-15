@@ -3,8 +3,7 @@
 Data: 2026-11-06 · Branch `gestao-branding-2.3.7`
 
 ## O que o painel faz agora
-- **Entrada com `?acesso=<token>`**: troca o token de uso único (60 s) pela chave na edge `evolution-painel-acesso` do Supabase (`verify_jwt=false`; o próprio token é a credencial) e guarda a chave na sessão do painel (`localStorage`, o mesmo do login por chave). Depois limpa o parâmetro com `history.replaceState`.
-- **Token inválido ou expirado**: vai para `/manager/login?motivo=link-expirado`, com o aviso "Link expirado, reabra pelo Gestão" e o login normal por chave.
+- **Acesso (desde 2026-11-15)**: login com e-mail e senha do Gestão (Supabase Auth), ver `docs/login-supabase.md`. A entrada antiga por `?acesso=<token>` e o login por URL do servidor + chave foram removidos; um link antigo com `?acesso=` cai na tela de login.
 - **Modo embutido** (`?embed=1` ou o painel num iframe): sem cabeçalho e sem menu do painel; só o conteúdo.
 - **Tema**: o Gestão envia `{ type: "gestao:tema", tema: "light" | "dark" }` por `postMessage`. O painel aceita só de `ORIGENS_GESTAO` (`src/lib/acessoGestao.ts`) e só do pai da janela. Ao carregar, o painel envia `evolution:pronto` para as mesmas origens.
 
@@ -28,6 +27,4 @@ traefik.http.routers.evolution-manager.middlewares=evo-embed-gestao
 O workflow `.github/workflows/docker.yml` (nome "Imagem Evolution + painel Gestão") roda em cada push neste branch e publica `ghcr.io/vschaadt-cyber/evolution-gestao:2.3.7` e `:<sha>`. Publicar a imagem não reinicia nada; o VPS só usa a nova versão depois de recriar o serviço.
 
 ## Como testar sem o Gestão
-1. Gerar um token de teste pela edge `evolution-painel-acesso` (ação `gerar`, com JWT de master_admin) e abrir `/manager/?acesso=<token>`.
-2. Abrir `/manager/?embed=1` diretamente: sem cabeçalho nem menu.
-3. Token reutilizado: deve cair em `/manager/login?motivo=link-expirado`.
+Abrir `/manager/?embed=1` já logado: sem cabeçalho nem menu.
