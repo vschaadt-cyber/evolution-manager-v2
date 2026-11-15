@@ -179,39 +179,39 @@
     }
   },
   "settings": {
-    "title": "Comportamento",
+    "title": "Comportamento do número",
     "toast": {
       "success": "Comportamento aplicado com sucesso",
       "error": "Ocorreu um erro ao aplicar o comportamento"
     },
     "form": {
       "rejectCall": {
-        "label": "Rejeitar Chamadas",
-        "description": "Rejeitar todas as chamadas"
+        "label": "Rejeitar chamadas",
+        "description": "Recusa sozinho toda ligação de voz ou vídeo que chegar neste número."
       },
       "msgCall": {
-        "label": "Mensagem de Rejeição de Chamada",
-        "description": "Enviar mensagem de rejeição de chamada"
+        "label": "Mensagem ao rejeitar a chamada",
+        "description": "Texto enviado a quem ligou, logo depois de a chamada ser recusada (ex.: “Não atendemos ligações, escreva aqui.”)."
       },
       "groupsIgnore": {
-        "label": "Ignorar Grupos",
-        "description": "Ignorar todas as mensagens de grupos"
+        "label": "Ignorar grupos",
+        "description": "O número deixa de receber mensagens de grupos. Conversas individuais continuam normais."
       },
       "alwaysOnline": {
-        "label": "Sempre Online",
-        "description": "Permanecer sempre online"
+        "label": "Sempre online",
+        "description": "Mantém o número aparecendo como “online” no WhatsApp o tempo todo."
       },
       "readMessages": {
-        "label": "Visualizar Mensagens",
-        "description": "Marcar todas as mensagens como lidas"
+        "label": "Marcar como lida",
+        "description": "Marca toda mensagem recebida como lida (visto azul) assim que chega, sem ninguém abrir a conversa."
       },
       "syncFullHistory": {
-        "label": "Sincronizar Histórico Completo",
-        "description": "Sincronizar o histórico completo ao ler o QR Code"
+        "label": "Sincronizar histórico",
+        "description": "Ao conectar pelo QR Code, baixa também o histórico antigo de conversas do celular. Só vale na próxima conexão."
       },
       "readStatus": {
-        "label": "Visualizar Status",
-        "description": "Marcar todos os status como visualizados"
+        "label": "Ler status",
+        "description": "Marca como visto os status (stories) dos contatos automaticamente."
       }
     },
     "button": {
