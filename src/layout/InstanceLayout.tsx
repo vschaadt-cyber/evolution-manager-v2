@@ -1,4 +1,4 @@
-import { ArrowLeft, Cog, Globe, LayoutDashboard, Webhook, Workflow, type LucideIcon } from "lucide-react";
+import { ArrowLeft, Cog, Globe, LayoutDashboard, UserRound, Webhook, Workflow, type LucideIcon } from "lucide-react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
@@ -33,7 +33,7 @@ function InstanceShell({ children }: LayoutProps) {
       {
         id: "connection",
         label: t("instance.nav.connection"),
-        items: [item("dashboard", t("sidebar.dashboard"), LayoutDashboard), item("settings", t("sidebar.settings"), Cog), item("proxy", t("sidebar.proxy"), Globe)],
+        items: [item("dashboard", t("sidebar.dashboard"), LayoutDashboard), item("perfil", "Perfil", UserRound), item("settings", t("sidebar.settings"), Cog), item("proxy", t("sidebar.proxy"), Globe)],
       },
       {
         id: "events",

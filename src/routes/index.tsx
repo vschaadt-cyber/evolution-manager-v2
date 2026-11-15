@@ -10,6 +10,7 @@ import Dashboard from "@/pages/Dashboard";
 import Diagnostics from "@/pages/Diagnostics";
 import { DashboardInstance } from "@/pages/instance/DashboardInstance";
 import { N8n } from "@/pages/instance/N8n";
+import { Perfil } from "@/pages/instance/Perfil";
 import { Proxy } from "@/pages/instance/Proxy";
 import { Settings } from "@/pages/instance/Settings";
 import { Webhook } from "@/pages/instance/Webhook";
@@ -60,6 +61,16 @@ const router = createBrowserRouter([
       <ProtectedRoute>
         <InstanceLayout>
           <Settings />
+        </InstanceLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/manager/instance/:instanceId/perfil",
+    element: (
+      <ProtectedRoute>
+        <InstanceLayout>
+          <Perfil />
         </InstanceLayout>
       </ProtectedRoute>
     ),
