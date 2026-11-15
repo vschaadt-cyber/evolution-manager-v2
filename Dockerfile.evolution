@@ -5,6 +5,9 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
+# Hash do commit do painel (rodapé do menu). O workflow passa github.sha; sem ele o rodapé mostra "dev".
+ARG PAINEL_COMMIT=dev
+ENV PAINEL_COMMIT=$PAINEL_COMMIT
 RUN npm run build
 
 FROM evoapicloud/evolution-api:v2.3.7

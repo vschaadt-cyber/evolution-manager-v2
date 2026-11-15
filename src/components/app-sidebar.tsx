@@ -118,7 +118,7 @@ export function AppSidebar({ sections, collapsed, onToggleCollapsed, mobileOpen,
         </nav>
 
         <div className="border-t p-3">
-          {!collapsed && version && <p className="mb-2 px-3 text-xs text-muted-foreground">Evolution API v{version}</p>}
+          {!collapsed && <p className="mb-2 px-3 text-xs text-muted-foreground">Evolution {version ?? "…"} · Painel {__PAINEL_COMMIT__}</p>}
           <Button
             variant="ghost"
             size="sm"

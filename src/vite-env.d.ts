@@ -8,3 +8,6 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+/** Hash curto do commit do painel, injetado no build pelo Vite (define). */
+declare const __PAINEL_COMMIT__: string;

@@ -21,6 +21,8 @@ jobs:
         with:
           context: .
           file: Dockerfile.evolution
+          build-args: |
+            PAINEL_COMMIT=${{ github.sha }}
           push: true
           tags: |
             ghcr.io/vschaadt-cyber/evolution-gestao:2.3.7
