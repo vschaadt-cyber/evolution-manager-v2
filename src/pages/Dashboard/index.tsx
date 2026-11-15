@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import { InstanceStatus } from "@/components/instance-status";
 import { InstancePhone } from "@/components/instance-phone";
 import { InstanceToken } from "@/components/instance-token";
+import { UltimoRecebimento } from "@/components/ultimo-recebimento";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -213,12 +214,13 @@ function Dashboard() {
       {filteredInstances.length > 0 && view === "list" && (
         <Card className="overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[820px] text-sm">
+            <table className="w-full min-w-[940px] text-sm">
               <thead>
                 <tr className="border-b bg-muted/50 text-left text-xs uppercase tracking-wider text-muted-foreground">
                   <th className="px-4 py-3 font-semibold">{t("dashboard.table.name")}</th>
                   <th className="px-4 py-3 font-semibold">{t("dashboard.table.status")}</th>
                   <th className="px-4 py-3 font-semibold">{t("dashboard.table.number")}</th>
+                  <th className="px-4 py-3 font-semibold">Último recebimento</th>
                   <th className="px-4 py-3 text-right font-semibold">{t("dashboard.table.messages")}</th>
                   <th className="px-4 py-3 text-right font-semibold">{t("dashboard.table.contacts")}</th>
                   <th className="px-4 py-3 font-semibold">{t("dashboard.table.token")}</th>
@@ -242,6 +244,9 @@ function Dashboard() {
                     </td>
                     <td className="px-4 py-3">
                       <InstancePhone instance={instance} compact />
+                    </td>
+                    <td className="px-4 py-3">
+                      <UltimoRecebimento name={instance.name} token={instance.token} />
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums">{fmt(instance._count?.Message ?? 0)}</td>
                     <td className="px-4 py-3 text-right tabular-nums">{fmt(instance._count?.Contact ?? 0)}</td>
@@ -275,6 +280,10 @@ function Dashboard() {
               </div>
 
               <InstancePhone instance={instance} compact />
+
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                Último recebimento: <UltimoRecebimento name={instance.name} token={instance.token} />
+              </div>
 
               <InstanceToken token={instance.token} />
 
